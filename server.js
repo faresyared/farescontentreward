@@ -21,7 +21,7 @@ app.use(session({
 }));
 
 // MongoDB connection string
-const dbURI = "mongodb+srv://yourUsername:yourPassword@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority";
+const dbURI = "mongodb+srv://sheinfw3:DxRRMILrKKbnARzK@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority";
 
 // Connect to MongoDB Atlas
 mongoose.connect(dbURI, {
