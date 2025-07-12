@@ -89,36 +89,32 @@
 </head>
 <body>
     <h2>Sign In</h2>
-    <form action="https://farescontentreward.vercel.app/signin" method="POST">
+    <form action="/signin" method="POST">
         <input type="text" name="username" placeholder="Username" required><br>
         <input type="password" name="password" placeholder="Password" required><br>
         <button type="submit">Log In</button>
     </form>
 
-    <!-- Error message placeholder -->
     <div class="error-message" id="error-message" style="display: none;">
         Invalid username or password.
     </div>
 
     <div class="links">
         <h3>Don't have an account?</h3>
-        <a href="https://farescontentreward.vercel.app/signup.html">Sign Up</a>
+        <a href="/signup">Sign Up</a>
     </div>
 
     <script>
-        // Handle any errors and display message if necessary
         const errorMessage = document.getElementById('error-message');
-        
-        // Example: If the server returns an error (you can customize this in your server response)
-        if (window.location.search.includes('error=true')) {
+        const urlParams = new URLSearchParams(window.location.search);
+
+        // Display error message if 'error=true' is present in the URL
+        if (urlParams.get('error') === 'true') {
             errorMessage.style.display = 'block';
         }
 
-        // Check if the user is redirected from a successful sign-in
-        // If you have a success parameter in the URL, redirect to the main page
-        if (window.location.search.includes('success=true')) {
-            window.location.href = 'https://farescontentreward.vercel.app/mainpage.html'; // Redirect to the main page
-        }
+        // Removed the 'success=true' check from here, as the server will directly redirect
+        // to /dashboard on successful login, making this client-side check redundant for login success.
     </script>
 </body>
 </html>
