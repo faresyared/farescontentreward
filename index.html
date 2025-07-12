@@ -97,7 +97,7 @@
 
             try {
                 // Send a request to our serverless function at /api/signin
-                const response = await fetch('/api/signin.js', {
+                const response = await fetch('/api/signin', {
                     method: 'POST', // We are sending data, so it's a POST request
                     headers: {
                         'Content-Type': 'application/json' // Tell the server we're sending JSON
