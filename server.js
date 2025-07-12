@@ -4,35 +4,35 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 const path = require('path');
 
-// Initialize Express
 const app = express();
 const port = 3000;
 
-// Serve static files from the 'public' directory
-app.use(express.static(path.join(__dirname, 'public')));
-
 // Middleware for parsing form data
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve static files like HTML, CSS, and JavaScript
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Setup session middleware
 app.use(session({
   secret: 'your-secret-key', 
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { secure: false }  
 }));
 
-// MongoDB connection string (replace with your own string from Atlas)
-const dbURI = "mongodb+srv://yourUsername:yourPassword@cluster0.ahfpxs9.mongodb.net/myDatabase?retryWrites=true&w=majority";
+// MongoDB connection string
+const dbURI = "mongodb+srv://yourUsername:yourPassword@cluster0.mongodb.net/myDatabase?retryWrites=true&w=majority";
 
+// Connect to MongoDB Atlas
 mongoose.connect(dbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 30000,
+  serverSelectionTimeoutMS: 30000, 
   socketTimeoutMS: 45000
 })
-.then(() => console.log('Connected to MongoDB Atlas'))
-.catch(err => console.log('MongoDB connection error:', err));
+  .then(() => console.log('Connected to MongoDB Atlas'))
+  .catch(err => console.log('MongoDB connection error:', err));
 
 // Define a user schema using Mongoose
 const userSchema = new mongoose.Schema({
@@ -47,32 +47,33 @@ const User = mongoose.model('User', userSchema);
 app.post('/signin', async (req, res) => {
   const { username, password } = req.body;
 
+  // Find user by username
   const user = await User.findOne({ username });
 
   if (user && user.password === password) {
     req.session.user = user;
-    res.send('Logged in successfully!');
+    res.redirect('/dashboard'); // Redirect to main page (dashboard)
   } else {
-    res.status(401).send('Invalid username or password');
+    res.redirect('/signin?error=true'); // Redirect back to sign-in page with an error query param
   }
 });
 
-// Sign-up route (POST method to handle user registration)
-app.post('/signup', async (req, res) => {
-  const { username, email, password } = req.body;
+// Serve the Sign In page when visiting the root URL (/)
+app.get('/signin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html')); // Send Sign In page
+});
 
-  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
-  if (existingUser) {
-    return res.status(400).send('Username or email already exists.');
-  }
+// Serve the Sign Up page when visiting the /signup URL
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'signup.html')); // Send Sign Up page
+});
 
-  const newUser = new User({ username, email, password });
-
-  try {
-    await newUser.save();
-    res.redirect('/');
-  } catch (err) {
-    res.status(500).send('Error creating user.');
+// Dashboard route (only accessible if the user is signed in)
+app.get('/dashboard', (req, res) => {
+  if (req.session.user) {
+    res.send(`Welcome to the Dashboard, ${req.session.user.username}!`);
+  } else {
+    res.status(401).send('You must be logged in to view this page.');
   }
 });
 
