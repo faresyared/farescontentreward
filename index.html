@@ -123,7 +123,17 @@
                 if (response.ok) { // If the server response was successful (HTTP 2xx)
                     messageElement.textContent = result.message;
                     messageElement.className = 'success'; // Make it green
-                    // In a real app, you'd save a user token here and redirect
+                    
+                    // --- NEW REDIRECTION LOGIC ---
+                    // Save user email to localStorage (useful for displaying on dashboard)
+                    localStorage.setItem('userEmail', email); 
+                    
+                    // Redirect to the dashboard after a short delay for message visibility
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.html'; 
+                    }, 1000); // Redirect after 1 second
+                    // --- END NEW REDIRECTION LOGIC ---
+
                     console.log('Sign In successful:', result);
                 } else { // If the server sent an error (HTTP 4xx or 5xx)
                     messageElement.textContent = result.message || 'An unknown error occurred.';
