@@ -191,12 +191,18 @@
 
         .add-campaign-form input[type="text"],
         .add-campaign-form textarea,
-        .add-campaign-form input[type="date"] {
+        .add-campaign-form input[type="date"],
+        .add-campaign-form input[type="number"],
+        .add-campaign-form select {
             width: calc(100% - 22px);
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
             font-size: 1em;
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+        .add-campaign-form input[type="file"] {
+            padding: 10px 0;
         }
 
         .add-campaign-form textarea {
@@ -213,6 +219,7 @@
             cursor: pointer;
             font-size: 1em;
             transition: background-color 0.2s ease;
+            margin-top: 15px;
         }
 
         .add-campaign-form button:hover {
@@ -276,6 +283,83 @@
             color: green;
         }
 
+        /* Campaign List Display */
+        .campaigns-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 20px;
+        }
+
+        .campaign-card {
+            background-color: var(--card-background);
+            border-radius: 10px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            overflow: hidden;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border-color);
+        }
+
+        .campaign-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+        }
+
+        .campaign-card img {
+            width: 100%;
+            height: 180px;
+            object-fit: cover;
+            display: block;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .campaign-card-content {
+            padding: 20px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Pushes budget/pay to bottom */
+        }
+
+        .campaign-card-content h4 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--primary-color);
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .campaign-card-content p {
+            margin-bottom: 8px;
+            line-height: 1.5;
+            font-size: 0.95em;
+            color: var(--text-color-light);
+        }
+
+        .campaign-card-content .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 15px; /* Spacing for budget/pay */
+            padding-top: 10px;
+            border-top: 1px dashed var(--border-color);
+        }
+
+        .campaign-card-content .info-item {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9em;
+        }
+
+        .campaign-card-content .info-item span {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 1.1em;
+        }
+
         /* --- Responsive Design --- */
         @media (max-width: 768px) {
             .sidebar {
@@ -298,6 +382,9 @@
             .sidebar + .main-content {
                 margin-left: 0;
             }
+            .campaigns-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
         }
 
         @media (max-width: 480px) {
@@ -306,6 +393,9 @@
             }
             .content-section {
                 padding: 20px;
+            }
+            .campaigns-grid {
+                grid-template-columns: 1fr; /* Stack campaigns vertically on very small screens */
             }
         }
     </style>
@@ -350,9 +440,11 @@
         </div>
 
         <div id="campaigns-section" class="content-section">
-            <h3>Campaigns Management</h3>
-            <p>Here you can create, manage, and view details about your marketing campaigns.</p>
-            <p>List of all campaigns...</p>
+            <h3>All Available Campaigns</h3>
+            <div id="campaignsGrid" class="campaigns-grid">
+                <p id="loadingCampaigns">Loading campaigns...</p>
+                <p id="noCampaigns" style="display:none;">No campaigns available yet. Check back soon!</p>
+            </div>
         </div>
 
         <div id="chat-section" class="content-section" style="display: none;">
@@ -377,6 +469,46 @@
                 <div class="form-group">
                     <label for="campaignDescription">Description:</label>
                     <textarea id="campaignDescription" name="campaignDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="campaignPhoto">Campaign Photo:</label>
+                    <input type="file" id="campaignPhoto" name="campaignPhoto" accept="image/*" required>
+                    <img id="campaignPhotoPreview" style="max-width: 150px; max-height: 150px; margin-top: 10px; border: 1px solid #ddd; display: none;" src="" alt="Campaign Photo Preview">
+                </div>
+                <div class="form-group">
+                    <label for="campaignCategory">Category:</label>
+                    <select id="campaignCategory" name="campaignCategory" required>
+                        <option value="">Select a Category</option>
+                        <option value="entertainment">Entertainment</option>
+                        <option value="trading">Trading</option>
+                        <option value="motivational">Motivational</option>
+                        <option value="brands">Brands</option>
+                        <option value="ugc">UGC (User Generated Content)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="customerRules">Rules for Customers (one per line):</label>
+                    <textarea id="customerRules" name="customerRules" placeholder="Rule 1&#10;Rule 2&#10;..." required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="associatedFiles">Associated Files/Links (e.g., YouTube URL, Google Drive URL, Instagram Post URL - one per line):</label>
+                    <textarea id="associatedFiles" name="associatedFiles" placeholder="https://www.youtube.com/watch?v=xyz&#10;https://drive.google.com/folder/abc&#10;https://www.instagram.com/p/123&#10;https://www.tiktok.com/@user/video/123" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="clipperPlatforms">Clipper Platforms (comma-separated: insta, tiktok, x, yt):</label>
+                    <input type="text" id="clipperPlatforms" name="clipperPlatforms" placeholder="insta, tiktok, yt" required>
+                </div>
+                <div class="form-group">
+                    <label for="remainingBudget">Remaining Budget ($):</label>
+                    <input type="number" id="remainingBudget" name="remainingBudget" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="payPer1kViews">Pay per 1K Views ($):</label>
+                    <input type="number" id="payPer1kViews" name="payPer1kViews" min="0" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="videoExamples">Video Examples (YouTube embed URLs - one per line):</label>
+                    <textarea id="videoExamples" name="videoExamples" placeholder="https://www.youtube.com/embed/example1&#10;https://www.youtube.com/embed/example2"></textarea>
                 </div>
                 <div class="form-group">
                     <label for="startDate">Start Date:</label>
@@ -422,9 +554,9 @@
         const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
         const currentPageTitle = document.getElementById('currentPageTitle');
         const profileEmailSpan = document.getElementById('profileEmail');
-        const profilePhoneSpan = document.getElementById('profilePhone'); // New
-        const profileCountrySpan = document.getElementById('profileCountry'); // New
-        const profileRoleSpan = document.getElementById('profileRole'); // New
+        const profilePhoneSpan = document.getElementById('profilePhone');
+        const profileCountrySpan = document.getElementById('profileCountry');
+        const profileRoleSpan = document.getElementById('profileRole');
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userRoleDisplay = document.getElementById('userRoleDisplay');
         const addCampaignSidebarLink = document.getElementById('add-campaign-sidebar-link');
@@ -436,6 +568,13 @@
         const profilePhotoPreview = document.getElementById('profilePhotoPreview');
         const uploadPhotoMessage = document.getElementById('uploadPhotoMessage');
 
+        // New Campaign elements
+        const campaignPhotoInput = document.getElementById('campaignPhoto');
+        const campaignPhotoPreview = document.getElementById('campaignPhotoPreview');
+        const campaignsGrid = document.getElementById('campaignsGrid');
+        const loadingCampaigns = document.getElementById('loadingCampaigns');
+        const noCampaigns = document.getElementById('noCampaigns');
+
 
         // --- User Role Check ---
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
@@ -444,14 +583,12 @@
         async function fetchUserProfile() {
             const userEmail = localStorage.getItem('userEmail');
             if (!userEmail) {
-                // If no email in local storage, user is not logged in.
                 console.warn('No user email found in localStorage. Redirecting to login.');
-                window.location.href = 'index.html'; // Redirect to sign-in
+                window.location.href = 'index.html';
                 return;
             }
 
             try {
-                // This will call a NEW serverless function: /api/getUserProfile
                 const response = await fetch(`/api/getUserProfile?email=${encodeURIComponent(userEmail)}`);
                 const result = await response.json();
 
@@ -460,12 +597,11 @@
                     profileEmailSpan.textContent = user.email || 'N/A';
                     profilePhoneSpan.textContent = `${user.phoneCode || ''} ${user.phoneNumber || 'N/A'}`.trim();
                     profileCountrySpan.textContent = user.country || 'N/A';
-                    profileRoleSpan.textContent = user.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) : 'N/A'; // Format role
-                    
-                    userNameDisplay.textContent = user.email.split('@')[0]; // Display part before @
+                    profileRoleSpan.textContent = user.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) : 'N/A';
+
+                    userNameDisplay.textContent = user.email.split('@')[0];
                     userRoleDisplay.textContent = user.isAdmin ? 'Admin' : (user.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) : 'User');
 
-                    // Display profile photo if available
                     if (user.profilePhotoUrl) {
                         profilePhotoPreview.src = user.profilePhotoUrl;
                     } else {
@@ -482,8 +618,54 @@
             }
         }
 
+        // --- Fetch All Campaigns for Display ---
+        async function fetchAllCampaigns() {
+            campaignsGrid.innerHTML = ''; // Clear previous campaigns
+            loadingCampaigns.style.display = 'block';
+            noCampaigns.style.display = 'none';
 
-        // --- Conditionally display admin elements and fetch profile on DOMContentLoaded ---
+            try {
+                const response = await fetch('/api/getCampaigns'); // New API endpoint
+                const result = await response.json();
+
+                if (response.ok && result.campaigns && result.campaigns.length > 0) {
+                    loadingCampaigns.style.display = 'none';
+                    result.campaigns.forEach(campaign => {
+                        const campaignCard = document.createElement('div');
+                        campaignCard.className = 'campaign-card';
+                        campaignCard.setAttribute('data-id', campaign._id); // Store campaign ID
+                        campaignCard.innerHTML = `
+                            <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/400x200?text=Campaign+Image'}" alt="${campaign.name}">
+                            <div class="campaign-card-content">
+                                <h4>${campaign.name}</h4>
+                                <p>Category: ${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</p>
+                                <div class="info-row">
+                                    <div class="info-item">Budget: <span>$${campaign.remainingBudget.toLocaleString()}</span></div>
+                                    <div class="info-item">Pay/1K Views: <span>$${campaign.payPer1kViews}</span></div>
+                                </div>
+                            </div>
+                        `;
+                        campaignsGrid.appendChild(campaignCard);
+
+                        // Add click listener to each campaign card
+                        campaignCard.addEventListener('click', () => {
+                            window.location.href = `campaign-detail.html?id=${campaign._id}`;
+                        });
+                    });
+                } else {
+                    loadingCampaigns.style.display = 'none';
+                    noCampaigns.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Network error fetching campaigns:', error);
+                loadingCampaigns.style.display = 'none';
+                noCampaigns.textContent = 'Failed to load campaigns. Please try again later.';
+                noCampaigns.style.display = 'block';
+            }
+        }
+
+
+        // --- Conditionally display admin elements and fetch data on DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', () => {
             if (isAdmin) {
                 addCampaignSidebarLink.classList.add('show');
@@ -497,6 +679,7 @@
                 initialActiveLink.classList.add('active');
                 document.getElementById('campaigns-section').style.display = 'block';
                 currentPageTitle.textContent = initialActiveLink.textContent.trim();
+                fetchAllCampaigns(); // Fetch campaigns when the page loads or Campaigns tab is active
             }
         });
 
@@ -525,6 +708,8 @@
                     // If profile section is clicked, re-fetch profile to ensure latest data
                     if (targetSectionId === 'profile-section') {
                         fetchUserProfile();
+                    } else if (targetSectionId === 'campaigns-section') {
+                        fetchAllCampaigns(); // Re-fetch campaigns when Campaigns tab is clicked
                     }
                 }
 
@@ -545,6 +730,23 @@
             window.location.href = 'index.html';
         });
 
+        // --- Campaign Photo Preview ---
+        campaignPhotoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    campaignPhotoPreview.src = e.target.result;
+                    campaignPhotoPreview.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+            } else {
+                campaignPhotoPreview.src = '';
+                campaignPhotoPreview.style.display = 'none';
+            }
+        });
+
+
         // --- Add Campaign Form Submission (Client-side) ---
         addCampaignForm.addEventListener('submit', async function(event) {
             event.preventDefault();
@@ -555,21 +757,29 @@
                 return;
             }
 
-            const campaignName = document.getElementById('campaignName').value;
-            const campaignDescription = document.getElementById('campaignDescription').value;
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+            const formData = new FormData();
+            formData.append('name', document.getElementById('campaignName').value);
+            formData.append('description', document.getElementById('campaignDescription').value);
+            formData.append('campaignPhoto', document.getElementById('campaignPhoto').files[0]);
+            formData.append('category', document.getElementById('campaignCategory').value);
+            formData.append('customerRules', document.getElementById('customerRules').value);
+            formData.append('associatedFiles', document.getElementById('associatedFiles').value);
+            formData.append('clipperPlatforms', document.getElementById('clipperPlatforms').value);
+            formData.append('remainingBudget', document.getElementById('remainingBudget').value);
+            formData.append('payPer1kViews', document.getElementById('payPer1kViews').value);
+            formData.append('videoExamples', document.getElementById('videoExamples').value);
+            formData.append('startDate', document.getElementById('startDate').value);
+            formData.append('endDate', document.getElementById('endDate').value);
+
 
             addCampaignMessage.textContent = 'Adding campaign...';
             addCampaignMessage.className = '';
 
             try {
+                // This will call the updated /api/addCampaign
                 const response = await fetch('/api/addCampaign', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ name: campaignName, description: campaignDescription, startDate, endDate })
+                    body: formData // FormData handles Content-Type automatically for file uploads
                 });
 
                 const result = await response.json();
@@ -578,6 +788,9 @@
                     addCampaignMessage.textContent = result.message;
                     addCampaignMessage.className = 'success';
                     addCampaignForm.reset();
+                    campaignPhotoPreview.src = ''; // Clear photo preview
+                    campaignPhotoPreview.style.display = 'none';
+                    fetchAllCampaigns(); // Refresh campaigns list
                 } else {
                     addCampaignMessage.textContent = result.message || 'Failed to add campaign.';
                     addCampaignMessage.className = '';
@@ -601,7 +814,6 @@
             uploadPhotoMessage.textContent = 'Uploading photo...';
             uploadPhotoMessage.className = '';
 
-            // Display a preview immediately
             const reader = new FileReader();
             reader.onload = (e) => {
                 profilePhotoPreview.src = e.target.result;
@@ -610,13 +822,12 @@
 
             const formData = new FormData();
             formData.append('profilePhoto', file);
-            formData.append('email', localStorage.getItem('userEmail')); // Send user email to identify whose photo it is
+            formData.append('email', localStorage.getItem('userEmail'));
 
             try {
-                // This will call a NEW serverless function: /api/uploadProfilePhoto
                 const response = await fetch('/api/uploadProfilePhoto', {
                     method: 'POST',
-                    body: formData // FormData handles Content-Type automatically for file uploads
+                    body: formData
                 });
 
                 const result = await response.json();
@@ -624,19 +835,18 @@
                 if (response.ok) {
                     uploadPhotoMessage.textContent = result.message;
                     uploadPhotoMessage.className = 'success';
-                    // Update the displayed photo URL from the server response if it's different/more reliable
                     if (result.profilePhotoUrl) {
                         profilePhotoPreview.src = result.profilePhotoUrl;
                     }
-                    fetchUserProfile(); // Re-fetch profile to ensure consistency with backend
+                    fetchUserProfile();
                 } else {
-                    profilePhotoPreview.src = "https://via.placeholder.com/120?text=Upload+Failed"; // Revert/show error on preview
+                    profilePhotoPreview.src = "https://via.placeholder.com/120?text=Upload+Failed";
                     uploadPhotoMessage.textContent = result.message || 'Failed to upload photo.';
                     uploadPhotoMessage.className = '';
                     console.error('Photo upload failed:', result);
                 }
             } catch (error) {
-                profilePhotoPreview.src = "https://via.placeholder.com/120?text=Network+Error"; // Revert/show error on preview
+                profilePhotoPreview.src = "https://via.placeholder.com/120?text=Network+Error";
                 uploadPhotoMessage.textContent = 'Network error during photo upload.';
                 uploadPhotoMessage.className = '';
                 console.error('Fetch error during photo upload:', error);
