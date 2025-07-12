@@ -28,7 +28,7 @@ async function connectToDatabase() {
         await cachedClient.connect(); // This line can throw an error if connection fails
     }
 
-    cachedDb = cachedClient.db('admin'); // Replace with your actual database name
+    cachedDb = cachedClient.db('sheinfw3'); // Replace with your actual database name
     console.log("LOG 3: MongoDB connected or reused connection. Database selected.");
     return cachedDb;
 }
