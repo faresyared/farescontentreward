@@ -1,0 +1,14 @@
+{
+  "name": "my-api",
+  "version": "1.0.0",
+  "description": "Vercel serverless functions for my website",
+  "main": "signin.js",
+  "scripts": {
+    "start": "node signin.js"
+  },
+  "dependencies": {
+    "mongodb": "^6.8.0"
+    // If you were using bcryptjs, you'd add it here:
+    // "bcryptjs": "^2.4.3"
+  }
+}
