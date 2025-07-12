@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory
 // Ensure your index.html and signup.html are inside a 'public' folder
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'main')));
 
 // Setup session middleware
 app.use(session({
@@ -110,12 +110,12 @@ app.post('/signin', async (req, res) => {
 
 // Serve the Sign In page when visiting the root URL (/)
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'main', 'index.html'));
 });
 
 // Serve the Sign Up page when visiting the /signup URL
 app.get('/signup', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+    res.sendFile(path.join(__dirname, 'main', 'signup.html'));
 });
 
 // Dashboard route (only accessible if the user is signed in)
