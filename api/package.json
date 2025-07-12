@@ -1,13 +1,17 @@
 {
-  "name": "my-api",
+  "name": "my-awesome-website",
   "version": "1.0.0",
-  "description": "Vercel serverless functions for my website",
-  "main": "signin.js",
+  "description": "A simple website hosted on Vercel.",
+  "main": "index.js",
   "scripts": {
-    "start": "node signin.js"
+    "start": "vercel dev"
   },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
     "mongodb": "^6.8.0",
-    "bcryptjs": "^2.4.3"
+    "cloudinary": "^2.2.0",
+    "formidable": "^3.5.1"  
   }
 }
