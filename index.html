@@ -3,122 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign In</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            margin: 0;
-        }
-        .container {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            text-align: center;
-        }
-        h2 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-        .form-group {
-            margin-bottom: 15px;
-            text-align: left;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            color: #555;
-        }
-        input[type="email"],
-        input[type="password"] {
-            width: calc(100% - 20px);
-            padding: 10px;
-            margin-bottom: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        #message {
-            margin-top: 15px;
-            font-weight: bold;
-            color: red;
-        }
-        #message.success {
-            color: green;
-        }
-    </style>
-</head>
+    <title>My First Website</title>
+    <link rel="stylesheet" href="style.css"> </head>
 <body>
-    <div class="container">
-        <h2>Sign In</h2>
-        <form id="signInForm">
-            <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" id="email" name="email" required>
-            </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit">Sign In</button>
-        </form>
-        <p id="message"></p>
-    </div>
+    <h1>Hello from My First Website!</h1>
+    <p>This is a paragraph of text.</p>
+    <button id="myButton">Click Me!</button>
+    <p id="message"></p>
 
-    <script>
-        document.getElementById('signInForm').addEventListener('submit', async function(event) {
-            event.preventDefault(); // Prevent default form submission
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const messageElement = document.getElementById('message');
-
-            try {
-                // The /api/signin endpoint will be handled by your serverless function
-                const response = await fetch('/api/signin', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ email, password })
-                });
-
-                const result = await response.json();
-
-                if (response.ok) {
-                    messageElement.textContent = result.message;
-                    messageElement.className = 'success';
-                    // In a real app, you'd redirect the user or store a token here
-                    console.log('Sign In successful:', result);
-                } else {
-                    messageElement.textContent = result.message || 'An error occurred';
-                    messageElement.className = ''; // Remove success class
-                    console.error('Sign In failed:', result);
-                }
-            } catch (error) {
-                messageElement.textContent = 'Network error. Please try again.';
-                messageElement.className = ''; // Remove success class
-                console.error('Fetch error:', error);
-            }
-        });
-    </script>
-</body>
+    <script src="script.js"></script> </body>
 </html>
