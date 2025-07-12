@@ -26,8 +26,6 @@ async function connectToDatabase() {
     console.log("LOG 3: MongoDB connected or reused connection. Database selected.");
     return cachedDb;
 }
-// api/signin.js (corrected)
-const { MongoClient } = require('mongodb');
 
 const uri = process.env.MONGODB_URI;
 
