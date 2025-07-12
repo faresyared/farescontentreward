@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campaign Details</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #007bff;
+            --secondary-color: #6c757d;
+            --background-light: #f8f9fa;
+            --background-dark: #343a40;
+            --card-background: #ffffff;
+            --text-color-light: #333;
+            --text-color-dark: #eee;
+            --border-color: #e0e0e0;
+            --shadow-color: rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background-color: var(--background-light);
+            color: var(--text-color-light);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background-color: var(--card-background);
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px var(--shadow-color);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--primary-color);
+        }
+
+        .header h1 {
+            color: var(--primary-color);
+            font-size: 2.2em;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .back-button {
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            text-decoration: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+
+        .campaign-image {
+            width: 100%;
+            max-height: 400px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            font-size: 1.6em;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 1px dashed var(--border-color);
+            font-weight: 600;
+        }
+
+        .info-group {
+            margin-bottom: 15px;
+        }
+
+        .info-group strong {
+            display: inline-block;
+            width: 150px;
+            color: #555;
+        }
+
+        .info-group span, .info-group p {
+            color: var(--text-color-light);
+        }
+
+        ul {
+            list-style-type: disc;
+            padding-left: 20px;
+            margin-bottom: 20px;
+        }
+
+        ul li {
+            margin-bottom: 8px;
+        }
+
+        .tag-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tag {
+            background-color: #e9ecef;
+            color: #495057;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 500;
+        }
+
+        .video-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .video-item {
+            position: relative;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .video-item iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+            border-radius: 8px; /* For rounded corners on the iframe itself */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+            .header h1 {
+                font-size: 1.8em;
+            }
+            .info-group strong {
+                width: 100px; /* Adjust for smaller screens */
+            }
+            .video-gallery {
+                grid-template-columns: 1fr; /* Stack videos on small screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1 id="campaignDetailTitle">Campaign Details</h1>
+            <a href="dashboard.html" class="back-button">Back to Dashboard</a>
+        </div>
+
+        <div id="campaignDetailContent">
+            <p>Loading campaign details...</p>
+            </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const campaignId = urlParams.get('id');
+            const campaignDetailContent = document.getElementById('campaignDetailContent');
+            const campaignDetailTitle = document.getElementById('campaignDetailTitle');
+
+            if (!campaignId) {
+                campaignDetailContent.innerHTML = '<p>No campaign ID provided.</p>';
+                campaignDetailTitle.textContent = 'Error';
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/getCampaignDetail?id=${encodeURIComponent(campaignId)}`);
+                const result = await response.json();
+
+                if (response.ok && result.campaign) {
+                    const campaign = result.campaign;
+                    campaignDetailTitle.textContent = campaign.name;
+
+                    let customerRulesHtml = campaign.customerRules && campaign.customerRules.length > 0
+                        ? `<ul>${campaign.customerRules.map(rule => `<li>${rule}</li>`).join('')}</ul>`
+                        : '<p>No specific rules provided for customers.</p>';
+
+                    let associatedFilesHtml = campaign.associatedFiles && campaign.associatedFiles.length > 0
+                        ? `<ul>${campaign.associatedFiles.map(file => `<li><a href="${file.url}" target="_blank">${file.type.charAt(0).toUpperCase() + file.type.slice(1)} Link</a>: ${file.url}</li>`).join('')}</ul>`
+                        : '<p>No associated files/links provided.</p>';
+
+                    let clipperPlatformsHtml = campaign.clipperPlatforms && campaign.clipperPlatforms.length > 0
+                        ? `<div class="tag-list">${campaign.clipperPlatforms.map(platform => `<span class="tag">${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>`).join('')}</div>`
+                        : '<p>No specific platforms mentioned.</p>';
+
+                    let videoExamplesHtml = campaign.videoExamples && campaign.videoExamples.length > 0
+                        ? `<div class="video-gallery">${campaign.videoExamples.map(url => `<div class="video-item"><iframe src="${url}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`).join('')}</div>`
+                        : '<p>No video examples provided.</p>';
+
+                    campaignDetailContent.innerHTML = `
+                        <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/800x450?text=Campaign+Image'}" alt="${campaign.name}" class="campaign-image">
+
+                        <div class="info-group">
+                            <strong>Description:</strong>
+                            <p>${campaign.description}</p>
+                        </div>
+
+                        <div class="info-group">
+                            <strong>Category:</strong>
+                            <span>${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</span>
+                        </div>
+
+                        <div class="info-group">
+                            <strong>Budget:</strong>
+                            <span>$${campaign.remainingBudget.toLocaleString()}</span>
+                        </div>
+
+                        <div class="info-group">
+                            <strong>Pay per 1K Views:</strong>
+                            <span>$${campaign.payPer1kViews}</span>
+                        </div>
+
+                        <div class="info-group">
+                            <strong>Dates:</strong>
+                            <span>${new Date(campaign.startDate).toLocaleDateString()} - ${new Date(campaign.endDate).toLocaleDateString()}</span>
+                        </div>
+
+                        <h3 class="section-title">Rules for Customers</h3>
+                        ${customerRulesHtml}
+
+                        <h3 class="section-title">Associated Files/Links</h3>
+                        ${associatedFilesHtml}
+
+                        <h3 class="section-title">Clipper Platforms</h3>
+                        ${clipperPlatformsHtml}
+
+                        <h3 class="section-title">Video Examples</h3>
+                        ${videoExamplesHtml}
+                    `;
+
+                } else {
+                    campaignDetailContent.innerHTML = `<p>${result.message || 'Failed to load campaign details.'}</p>`;
+                    campaignDetailTitle.textContent = 'Campaign Not Found';
+                }
+            } catch (error) {
+                console.error('Network error fetching campaign details:', error);
+                campaignDetailContent.innerHTML = '<p>Network error. Could not load campaign details.</p>';
+                campaignDetailTitle.textContent = 'Error';
+            }
+        });
+    </script>
+</body>
+</html>
