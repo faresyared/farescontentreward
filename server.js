@@ -43,23 +43,30 @@ const userSchema = new mongoose.Schema({
 
 const User = mongoose.model('User', userSchema);
 
-// Sign-in route (POST method to handle login)
-app.post('/signin', async (req, res) => {
-  const { username, password } = req.body;
+// Sign-up route (POST method to handle user registration)
+app.post('/signup', async (req, res) => {
+  const { username, email, password } = req.body;
 
-  // Find user by username
-  const user = await User.findOne({ username });
+  // Check if the user already exists
+  const existingUser = await User.findOne({ $or: [{ username }, { email }] });
+  if (existingUser) {
+    return res.status(400).send('Username or email already exists.');
+  }
 
-  if (user && user.password === password) {
-    req.session.user = user;
-    res.redirect('/dashboard'); // Redirect to main page (dashboard)
-  } else {
-    res.redirect('/signin?error=true'); // Redirect back to sign-in page with an error query param
+  // Create a new user and save to the database
+  const newUser = new User({ username, email, password });
+
+  try {
+    await newUser.save();
+    // After successful sign-up, redirect to the Sign In page
+    res.redirect('/');
+  } catch (err) {
+    res.status(500).send('Error creating user.');
   }
 });
 
 // Serve the Sign In page when visiting the root URL (/)
-app.get('/signin', (req, res) => {
+app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html')); // Send Sign In page
 });
 
