@@ -113,6 +113,12 @@
         if (window.location.search.includes('error=true')) {
             errorMessage.style.display = 'block';
         }
+
+        // Check if the user is redirected from a successful sign-in
+        // If you have a success parameter in the URL, redirect to the main page
+        if (window.location.search.includes('success=true')) {
+            window.location.href = 'https://farescontentreward.vercel.app/mainpage'; // Redirect to the main page
+        }
     </script>
 </body>
 </html>
