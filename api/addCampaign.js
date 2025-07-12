@@ -1,6 +1,6 @@
 // api/addCampaign.js
 const { MongoClient } = require('mongodb');
-const formidable = require('formidable'); // For parsing form data including files
+const formidable = require('formidable'); // Import the formidable module
 const cloudinary = require('cloudinary').v2; // Cloudinary SDK
 
 // Crucial for Vercel: Disable default body parsing so formidable can handle it
@@ -52,7 +52,8 @@ module.exports = async (req, res) => {
         return res.status(500).json({ message: "Server configuration error: Cloudinary credentials missing." });
     }
 
-    const form = formidable();
+    // Fix: Instantiate formidable correctly for v3
+    const form = formidable.formidable({}); // Correct way to initialize for formidable v3
 
     form.parse(req, async (err, fields, files) => {
         if (err) {
@@ -77,6 +78,7 @@ module.exports = async (req, res) => {
         const associatedFilesRaw = Array.isArray(fields.associatedFiles) ? fields.associatedFiles[0] : fields.associatedFiles;
         const associatedFiles = associatedFilesRaw ? associatedFiles.split('\n').map(file => {
             const trimmed = file.trim();
+            // Updated to be more flexible for YouTube URLs without specific domain strings
             if (trimmed.includes('youtube.com') || trimmed.includes('youtu.be')) return { type: 'youtube', url: trimmed };
             if (trimmed.includes('drive.google.com')) return { type: 'drive', url: trimmed };
             if (trimmed.includes('instagram.com')) return { type: 'instagram', url: trimmed };
@@ -90,13 +92,33 @@ module.exports = async (req, res) => {
         const clipperPlatforms = clipperPlatformsRaw ? clipperPlatforms.split(',').map(platform => platform.trim().toLowerCase()).filter(platform => platform) : [];
 
         const videoExamplesRaw = Array.isArray(fields.videoExamples) ? fields.videoExamples[0] : fields.videoExamples;
-        const videoExamples = videoExamplesRaw ? videoExamples.split('\n').map(url => url.trim()).filter(url => url) : [];
+        // Ensure YouTube embed links are properly formatted for iframe use
+        const videoExamples = videoExamplesRaw ? videoExamplesRaw.split('\n').map(url => {
+            let processedUrl = url.trim();
+            // Convert common YouTube share/watch URLs to embed URLs
+            if (processedUrl.includes('youtube.com/watch?v=')) {
+                processedUrl = processedUrl.replace('watch?v=', 'embed/');
+            } else if (processedUrl.includes('youtu.be/')) {
+                processedUrl = processedUrl.replace('youtu.be/', 'youtube.com/embed/');
+            }
+            // Add modestbranding and rel=0 for cleaner embeds
+            if (processedUrl.includes('youtube.com/embed/') && !processedUrl.includes('?')) {
+                processedUrl += '?modestbranding=1&rel=0';
+            } else if (processedUrl.includes('youtube.com/embed/') && processedUrl.includes('?')) {
+                processedUrl += '&modestbranding=1&rel=0';
+            }
+            return processedUrl;
+        }).filter(url => url) : [];
 
         const campaignPhoto = files.campaignPhoto ? (Array.isArray(files.campaignPhoto) ? files.campaignPhoto[0] : files.campaignPhoto) : null;
 
-        if (!name || !description || !startDate || !endDate || !campaignPhoto || !category || !remainingBudget || !payPer1kViews) {
+        if (!name || !description || !startDate || !endDate || !campaignPhoto || !category || remainingBudget === undefined || payPer1kViews === undefined) {
             return res.status(400).json({ message: 'Missing required campaign fields (name, description, dates, photo, category, budget, pay per view).' });
         }
+        if (isNaN(remainingBudget) || isNaN(payPer1kViews)) {
+            return res.status(400).json({ message: 'Remaining Budget and Pay per 1K Views must be valid numbers.' });
+        }
+
 
         let campaignPhotoUrl = null;
         try {
