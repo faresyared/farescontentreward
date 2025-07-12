@@ -94,10 +94,10 @@
 
         /* Admin-specific styling */
         .sidebar-menu li.admin-only {
-            display: none; /* Hidden by default */
+            display: none;
         }
         .sidebar-menu li.admin-only.show {
-            display: block; /* Show if admin */
+            display: block;
         }
 
 
@@ -192,7 +192,7 @@
         .add-campaign-form input[type="text"],
         .add-campaign-form textarea,
         .add-campaign-form input[type="date"] {
-            width: calc(100% - 22px); /* Adjust for padding and border */
+            width: calc(100% - 22px);
             padding: 10px;
             border: 1px solid #ddd;
             border-radius: 5px;
@@ -225,6 +225,54 @@
             color: red;
         }
         #addCampaignMessage.success {
+            color: green;
+        }
+
+        /* Profile Section specific styles */
+        .profile-info p {
+            margin-bottom: 10px;
+        }
+        .profile-photo-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-color);
+        }
+        .profile-photo-preview {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin: 0 auto 15px;
+            display: block;
+            border: 2px solid var(--primary-color);
+            background-color: #f0f0f0; /* Placeholder background */
+        }
+        .profile-photo-input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .profile-photo-input-group label {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            margin-bottom: 10px;
+        }
+        .profile-photo-input-group label:hover {
+            background-color: #0056b3;
+        }
+        .profile-photo-input-group input[type="file"] {
+            display: none; /* Hide default file input */
+        }
+        #uploadPhotoMessage {
+            margin-top: 10px;
+            font-weight: bold;
+            color: red;
+        }
+        #uploadPhotoMessage.success {
             color: green;
         }
 
@@ -345,11 +393,24 @@
 
         <div id="profile-section" class="content-section" style="display: none;">
             <h3>User Profile</h3>
-            <p>View and update your profile information.</p>
-            <p>Your email: <span id="profileEmail">Loading...</span></p>
-            <p>Role: <span id="profileRole">Loading...</span></p>
-            <p>Password: ********</p>
-            <button>Edit Profile</button>
+            <div class="profile-info">
+                <p>Your email: <span id="profileEmail">Loading...</span></p>
+                <p>Phone: <span id="profilePhone">Loading...</span></p>
+                <p>Country: <span id="profileCountry">Loading...</span></p>
+                <p>Role: <span id="profileRole">Loading...</span></p>
+            </div>
+
+            <div class="profile-photo-section">
+                <h4>Profile Photo</h4>
+                <img id="profilePhotoPreview" class="profile-photo-preview" src="https://via.placeholder.com/120?text=No+Photo" alt="Profile Photo">
+                <div class="profile-photo-input-group">
+                    <label for="profilePhotoInput">Upload Photo</label>
+                    <input type="file" id="profilePhotoInput" accept="image/*">
+                    <p id="uploadPhotoMessage"></p>
+                </div>
+            </div>
+
+            <button style="margin-top: 20px;">Edit Profile</button>
         </div>
     </div>
 
@@ -361,39 +422,74 @@
         const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
         const currentPageTitle = document.getElementById('currentPageTitle');
         const profileEmailSpan = document.getElementById('profileEmail');
-        const profileRoleSpan = document.getElementById('profileRole');
+        const profilePhoneSpan = document.getElementById('profilePhone'); // New
+        const profileCountrySpan = document.getElementById('profileCountry'); // New
+        const profileRoleSpan = document.getElementById('profileRole'); // New
         const userNameDisplay = document.getElementById('userNameDisplay');
         const userRoleDisplay = document.getElementById('userRoleDisplay');
         const addCampaignSidebarLink = document.getElementById('add-campaign-sidebar-link');
         const addCampaignForm = document.getElementById('addCampaignForm');
         const addCampaignMessage = document.getElementById('addCampaignMessage');
 
+        // Profile Photo elements
+        const profilePhotoInput = document.getElementById('profilePhotoInput');
+        const profilePhotoPreview = document.getElementById('profilePhotoPreview');
+        const uploadPhotoMessage = document.getElementById('uploadPhotoMessage');
+
+
         // --- User Role Check ---
         const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-        // --- Conditionally display admin elements ---
+        // --- Fetch User Profile Data on Load ---
+        async function fetchUserProfile() {
+            const userEmail = localStorage.getItem('userEmail');
+            if (!userEmail) {
+                // If no email in local storage, user is not logged in.
+                console.warn('No user email found in localStorage. Redirecting to login.');
+                window.location.href = 'index.html'; // Redirect to sign-in
+                return;
+            }
+
+            try {
+                // This will call a NEW serverless function: /api/getUserProfile
+                const response = await fetch(`/api/getUserProfile?email=${encodeURIComponent(userEmail)}`);
+                const result = await response.json();
+
+                if (response.ok) {
+                    const user = result.user;
+                    profileEmailSpan.textContent = user.email || 'N/A';
+                    profilePhoneSpan.textContent = `${user.phoneCode || ''} ${user.phoneNumber || 'N/A'}`.trim();
+                    profileCountrySpan.textContent = user.country || 'N/A';
+                    profileRoleSpan.textContent = user.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) : 'N/A'; // Format role
+                    
+                    userNameDisplay.textContent = user.email.split('@')[0]; // Display part before @
+                    userRoleDisplay.textContent = user.isAdmin ? 'Admin' : (user.role ? user.role.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase()) : 'User');
+
+                    // Display profile photo if available
+                    if (user.profilePhotoUrl) {
+                        profilePhotoPreview.src = user.profilePhotoUrl;
+                    } else {
+                        profilePhotoPreview.src = "https://via.placeholder.com/120?text=No+Photo";
+                    }
+
+                } else {
+                    console.error('Failed to fetch user profile:', result.message);
+                    profileEmailSpan.textContent = 'Error loading profile.';
+                }
+            } catch (error) {
+                console.error('Network error fetching profile:', error);
+                profileEmailSpan.textContent = 'Network error.';
+            }
+        }
+
+
+        // --- Conditionally display admin elements and fetch profile on DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', () => {
             if (isAdmin) {
                 addCampaignSidebarLink.classList.add('show');
-                document.getElementById('add-campaign-section').classList.add('show'); // This ensures the section exists but is hidden by default content switcher
-                userRoleDisplay.textContent = 'Admin';
-                profileRoleSpan.textContent = 'Admin';
-            } else {
-                userRoleDisplay.textContent = 'User';
-                profileRoleSpan.textContent = 'User';
+                document.getElementById('add-campaign-section').classList.add('show');
             }
-
-            // Set initial user email display
-            const userEmail = localStorage.getItem('userEmail');
-            if (userEmail) {
-                userNameDisplay.textContent = userEmail.split('@')[0]; // Show part before @ for simpler user name
-                profileEmailSpan.textContent = userEmail;
-            } else {
-                userNameDisplay.textContent = 'Guest';
-                profileEmailSpan.textContent = 'N/A (Please sign in)';
-                // Optional: Redirect to login if not authenticated
-                // window.location.href = 'index.html';
-            }
+            fetchUserProfile(); // Fetch user data when dashboard loads
 
             // Set Campaigns as active and visible on initial load
             const initialActiveLink = document.querySelector('.sidebar-menu a[data-section="campaigns"]');
@@ -426,6 +522,10 @@
                 const targetSection = document.getElementById(targetSectionId);
                 if (targetSection) {
                     targetSection.style.display = 'block';
+                    // If profile section is clicked, re-fetch profile to ensure latest data
+                    if (targetSectionId === 'profile-section') {
+                        fetchUserProfile();
+                    }
                 }
 
                 currentPageTitle.textContent = this.textContent.trim();
@@ -438,9 +538,9 @@
 
         // --- Logout Logic ---
         logoutButton.addEventListener('click', () => {
-            localStorage.removeItem('userToken'); // If you implement JWTs
+            localStorage.removeItem('userToken');
             localStorage.removeItem('userEmail');
-            localStorage.removeItem('isAdmin'); // Clear admin status
+            localStorage.removeItem('isAdmin');
             alert('You have been logged out.');
             window.location.href = 'index.html';
         });
@@ -449,7 +549,7 @@
         addCampaignForm.addEventListener('submit', async function(event) {
             event.preventDefault();
 
-            if (!isAdmin) { // Double check on client-side
+            if (!isAdmin) {
                 addCampaignMessage.textContent = 'You do not have permission to add campaigns.';
                 addCampaignMessage.className = '';
                 return;
@@ -464,13 +564,10 @@
             addCampaignMessage.className = '';
 
             try {
-                // This will call a NEW serverless function: /api/addCampaign
                 const response = await fetch('/api/addCampaign', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                        // You might include an authorization token here in a real app
-                        // 'Authorization': 'Bearer ' + localStorage.getItem('userToken')
                     },
                     body: JSON.stringify({ name: campaignName, description: campaignDescription, startDate, endDate })
                 });
@@ -480,9 +577,7 @@
                 if (response.ok) {
                     addCampaignMessage.textContent = result.message;
                     addCampaignMessage.className = 'success';
-                    addCampaignForm.reset(); // Clear the form
-                    console.log('Campaign added:', result);
-                    // Optionally, refresh 'My Campaigns List' or 'Campaigns' section here
+                    addCampaignForm.reset();
                 } else {
                     addCampaignMessage.textContent = result.message || 'Failed to add campaign.';
                     addCampaignMessage.className = '';
@@ -495,6 +590,58 @@
             }
         });
 
+        // --- Profile Photo Upload Logic ---
+        profilePhotoInput.addEventListener('change', async function(event) {
+            const file = event.target.files[0];
+            if (!file) {
+                uploadPhotoMessage.textContent = '';
+                return;
+            }
+
+            uploadPhotoMessage.textContent = 'Uploading photo...';
+            uploadPhotoMessage.className = '';
+
+            // Display a preview immediately
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                profilePhotoPreview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('profilePhoto', file);
+            formData.append('email', localStorage.getItem('userEmail')); // Send user email to identify whose photo it is
+
+            try {
+                // This will call a NEW serverless function: /api/uploadProfilePhoto
+                const response = await fetch('/api/uploadProfilePhoto', {
+                    method: 'POST',
+                    body: formData // FormData handles Content-Type automatically for file uploads
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    uploadPhotoMessage.textContent = result.message;
+                    uploadPhotoMessage.className = 'success';
+                    // Update the displayed photo URL from the server response if it's different/more reliable
+                    if (result.profilePhotoUrl) {
+                        profilePhotoPreview.src = result.profilePhotoUrl;
+                    }
+                    fetchUserProfile(); // Re-fetch profile to ensure consistency with backend
+                } else {
+                    profilePhotoPreview.src = "https://via.placeholder.com/120?text=Upload+Failed"; // Revert/show error on preview
+                    uploadPhotoMessage.textContent = result.message || 'Failed to upload photo.';
+                    uploadPhotoMessage.className = '';
+                    console.error('Photo upload failed:', result);
+                }
+            } catch (error) {
+                profilePhotoPreview.src = "https://via.placeholder.com/120?text=Network+Error"; // Revert/show error on preview
+                uploadPhotoMessage.textContent = 'Network error during photo upload.';
+                uploadPhotoMessage.className = '';
+                console.error('Fetch error during photo upload:', error);
+            }
+        });
 
         // Handle initial sidebar state for desktop vs mobile
         function handleSidebarState() {
