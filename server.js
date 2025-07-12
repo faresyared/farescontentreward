@@ -5,7 +5,6 @@ const mongoose = require('mongoose');
 const path = require('path');
 
 const app = express();
-const port = 3000;
 
 // Middleware for parsing form data
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -82,9 +81,4 @@ app.get('/dashboard', (req, res) => {
   } else {
     res.status(401).send('You must be logged in to view this page.');
   }
-});
-
-// Start the server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
 });
