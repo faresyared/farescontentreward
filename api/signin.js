@@ -6,12 +6,6 @@ const uri = process.env.MONGODB_URI;
 // Log 1: Function started
 console.log("LOG 1: signin.js function started."); 
 
-if (!uri) {
-    console.error("ERROR: MONGODB_URI environment variable is NOT SET. Your API will not work.");
-    // If URI is missing, we might exit early, which explains no further logs
-    return res.status(500).json({ message: "Server configuration error: MONGODB_URI missing." });
-}
-
 let cachedClient = null;
 let cachedDb = null;
 
@@ -32,6 +26,33 @@ async function connectToDatabase() {
     console.log("LOG 3: MongoDB connected or reused connection. Database selected.");
     return cachedDb;
 }
+// api/signin.js (corrected)
+const { MongoClient } = require('mongodb');
+
+const uri = process.env.MONGODB_URI;
+
+let cachedClient = null;
+let cachedDb = null;
+
+async function connectToDatabase() {
+    console.log("LOG 2: Attempting to connect to database.");
+    if (cachedDb) {
+        console.log("LOG 2.1: Reusing cached database connection.");
+        return cachedDb;
+    }
+
+    if (!cachedClient) {
+        console.log("LOG 2.2: Creating new MongoClient and connecting.");
+        cachedClient = new MongoClient(uri);
+        // The .connect() method can throw an error if the URI is bad or network issues
+        await cachedClient.connect(); 
+    }
+
+    cachedDb = cachedClient.db('your_database_name'); // Replace with your actual database name
+    console.log("LOG 3: MongoDB connected or reused connection. Database selected.");
+    return cachedDb;
+}
+
 
 module.exports = async (req, res) => {
     console.log("LOG 4: Request received in module.exports.");
