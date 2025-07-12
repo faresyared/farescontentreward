@@ -26,7 +26,7 @@
             min-height: 100vh;
             background-color: var(--background-light);
             color: var(--text-color-light);
-            overflow-x: hidden; /* Prevent horizontal scroll */
+            overflow-x: hidden;
         }
 
         /* --- Sidebar Styling --- */
@@ -40,7 +40,7 @@
             box-shadow: 2px 0 5px var(--shadow-color);
             transition: transform 0.3s ease-in-out;
             z-index: 1000;
-            position: fixed; /* Fixed position for sidebar */
+            position: fixed;
             height: 100%;
             top: 0;
             left: 0;
@@ -87,10 +87,19 @@
 
         .sidebar-menu li a svg {
             margin-right: 15px;
-            fill: currentColor; /* Inherit color from parent */
+            fill: currentColor;
             width: 20px;
             height: 20px;
         }
+
+        /* Admin-specific styling */
+        .sidebar-menu li.admin-only {
+            display: none; /* Hidden by default */
+        }
+        .sidebar-menu li.admin-only.show {
+            display: block; /* Show if admin */
+        }
+
 
         .sidebar-footer {
             padding: 20px;
@@ -117,7 +126,7 @@
         .main-content {
             flex-grow: 1;
             padding: 20px;
-            margin-left: 250px; /* Offset for the sidebar */
+            margin-left: 250px;
             transition: margin-left 0.3s ease-in-out;
         }
 
@@ -144,7 +153,7 @@
         }
 
         .menu-toggle {
-            display: none; /* Hidden on desktop */
+            display: none;
             background: none;
             border: none;
             font-size: 1.8em;
@@ -169,30 +178,54 @@
             padding-bottom: 10px;
         }
 
-        /* --- Grid Layout for sections --- */
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
+        /* Form styling for Add Campaign */
+        .add-campaign-form .form-group {
+            margin-bottom: 15px;
         }
 
-        .card {
-            background-color: var(--card-background);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 2px 5px var(--shadow-color);
-            text-align: center;
-            transition: transform 0.2s ease;
+        .add-campaign-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
         }
 
-        .card:hover {
-            transform: translateY(-5px);
+        .add-campaign-form input[type="text"],
+        .add-campaign-form textarea,
+        .add-campaign-form input[type="date"] {
+            width: calc(100% - 22px); /* Adjust for padding and border */
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
         }
 
-        .card h4 {
-            color: var(--primary-color);
-            margin-top: 0;
-            font-size: 1.2em;
+        .add-campaign-form textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .add-campaign-form button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .add-campaign-form button:hover {
+            background-color: #218838;
+        }
+
+        #addCampaignMessage {
+            margin-top: 15px;
+            font-weight: bold;
+            color: red;
+        }
+        #addCampaignMessage.success {
+            color: green;
         }
 
         /* --- Responsive Design --- */
@@ -202,20 +235,20 @@
                 transform: translateX(-100%);
             }
             .sidebar.collapsed {
-                transform: translateX(0); /* Show when collapsed on mobile */
+                transform: translateX(0);
             }
             .main-content {
-                margin-left: 0; /* No left margin on mobile */
+                margin-left: 0;
                 padding: 15px;
             }
             .topbar {
                 padding: 10px 15px;
             }
             .menu-toggle {
-                display: block; /* Show menu toggle on mobile */
+                display: block;
             }
             .sidebar + .main-content {
-                margin-left: 0; /* Reset margin for main content */
+                margin-left: 0;
             }
         }
 
@@ -224,9 +257,6 @@
                 font-size: 1.5em;
             }
             .content-section {
-                padding: 20px;
-            }
-            .card {
                 padding: 20px;
             }
         }
@@ -250,6 +280,10 @@
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>
                 My Campaigns List
             </a></li>
+            <li class="admin-only" id="add-campaign-sidebar-link"><a href="#" data-section="add-campaign">
+                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                Add New Campaign
+            </a></li>
             <li><a href="#" data-section="profile">
                 <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" class="css-i6dzq1"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                 Profile
@@ -263,10 +297,12 @@
     <div class="main-content" id="main-content">
         <div class="topbar">
             <button class="menu-toggle" id="menuToggle">&#9776;</button>
-            <h2 id="currentPageTitle">Campaigns</h2> <div>User Name</div>
+            <h2 id="currentPageTitle">Campaigns</h2>
+            <div><span id="userNameDisplay">User Name</span> (<span id="userRoleDisplay">User</span>)</div>
         </div>
 
-        <div id="campaigns-section" class="content-section"> <h3>Campaigns Management</h3>
+        <div id="campaigns-section" class="content-section">
+            <h3>Campaigns Management</h3>
             <p>Here you can create, manage, and view details about your marketing campaigns.</p>
             <p>List of all campaigns...</p>
         </div>
@@ -283,10 +319,35 @@
             <p>Your active campaigns will appear here...</p>
         </div>
 
+        <div id="add-campaign-section" class="content-section admin-only" style="display: none;">
+            <h3>Add New Campaign</h3>
+            <form id="addCampaignForm" class="add-campaign-form">
+                <div class="form-group">
+                    <label for="campaignName">Campaign Name:</label>
+                    <input type="text" id="campaignName" name="campaignName" required>
+                </div>
+                <div class="form-group">
+                    <label for="campaignDescription">Description:</label>
+                    <textarea id="campaignDescription" name="campaignDescription" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="startDate">Start Date:</label>
+                    <input type="date" id="startDate" name="startDate" required>
+                </div>
+                <div class="form-group">
+                    <label for="endDate">End Date:</label>
+                    <input type="date" id="endDate" name="endDate" required>
+                </div>
+                <button type="submit">Create Campaign</button>
+            </form>
+            <p id="addCampaignMessage"></p>
+        </div>
+
         <div id="profile-section" class="content-section" style="display: none;">
             <h3>User Profile</h3>
             <p>View and update your profile information.</p>
             <p>Your email: <span id="profileEmail">Loading...</span></p>
+            <p>Role: <span id="profileRole">Loading...</span></p>
             <p>Password: ********</p>
             <button>Edit Profile</button>
         </div>
@@ -300,59 +361,38 @@
         const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
         const currentPageTitle = document.getElementById('currentPageTitle');
         const profileEmailSpan = document.getElementById('profileEmail');
+        const profileRoleSpan = document.getElementById('profileRole');
+        const userNameDisplay = document.getElementById('userNameDisplay');
+        const userRoleDisplay = document.getElementById('userRoleDisplay');
+        const addCampaignSidebarLink = document.getElementById('add-campaign-sidebar-link');
+        const addCampaignForm = document.getElementById('addCampaignForm');
+        const addCampaignMessage = document.getElementById('addCampaignMessage');
 
-        // --- Toggle Sidebar on Mobile ---
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('collapsed');
-        });
+        // --- User Role Check ---
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
-        // --- Show/Hide Content Sections based on Sidebar Click ---
-        sidebarLinks.forEach(link => {
-            link.addEventListener('click', function(event) {
-                event.preventDefault(); // Prevent default link behavior
-
-                // Remove active class from all links
-                sidebarLinks.forEach(item => item.classList.remove('active'));
-                // Add active class to clicked link
-                this.classList.add('active');
-
-                // Hide all content sections
-                document.querySelectorAll('.content-section').forEach(section => {
-                    section.style.display = 'none';
-                });
-
-                // Show the selected content section
-                const targetSectionId = this.getAttribute('data-section') + '-section';
-                const targetSection = document.getElementById(targetSectionId);
-                if (targetSection) {
-                    targetSection.style.display = 'block';
-                }
-
-                // Update the page title
-                currentPageTitle.textContent = this.textContent.trim();
-
-                // For mobile, collapse sidebar after selection
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.add('collapsed');
-                }
-            });
-        });
-
-        // --- Logout Logic ---
-        logoutButton.addEventListener('click', () => {
-            localStorage.removeItem('userToken');
-            localStorage.removeItem('userEmail');
-            alert('You have been logged out.');
-            window.location.href = 'index.html'; // Redirect to sign-in page
-        });
-
-        // --- Load User Profile Data (Example) ---
+        // --- Conditionally display admin elements ---
         document.addEventListener('DOMContentLoaded', () => {
+            if (isAdmin) {
+                addCampaignSidebarLink.classList.add('show');
+                document.getElementById('add-campaign-section').classList.add('show'); // This ensures the section exists but is hidden by default content switcher
+                userRoleDisplay.textContent = 'Admin';
+                profileRoleSpan.textContent = 'Admin';
+            } else {
+                userRoleDisplay.textContent = 'User';
+                profileRoleSpan.textContent = 'User';
+            }
+
+            // Set initial user email display
             const userEmail = localStorage.getItem('userEmail');
             if (userEmail) {
+                userNameDisplay.textContent = userEmail.split('@')[0]; // Show part before @ for simpler user name
                 profileEmailSpan.textContent = userEmail;
             } else {
+                userNameDisplay.textContent = 'Guest';
                 profileEmailSpan.textContent = 'N/A (Please sign in)';
+                // Optional: Redirect to login if not authenticated
+                // window.location.href = 'index.html';
             }
 
             // Set Campaigns as active and visible on initial load
@@ -363,6 +403,98 @@
                 currentPageTitle.textContent = initialActiveLink.textContent.trim();
             }
         });
+
+
+        // --- Toggle Sidebar on Mobile ---
+        menuToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+        });
+
+        // --- Show/Hide Content Sections based on Sidebar Click ---
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', function(event) {
+                event.preventDefault();
+
+                sidebarLinks.forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
+
+                document.querySelectorAll('.content-section').forEach(section => {
+                    section.style.display = 'none';
+                });
+
+                const targetSectionId = this.getAttribute('data-section') + '-section';
+                const targetSection = document.getElementById(targetSectionId);
+                if (targetSection) {
+                    targetSection.style.display = 'block';
+                }
+
+                currentPageTitle.textContent = this.textContent.trim();
+
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.add('collapsed');
+                }
+            });
+        });
+
+        // --- Logout Logic ---
+        logoutButton.addEventListener('click', () => {
+            localStorage.removeItem('userToken'); // If you implement JWTs
+            localStorage.removeItem('userEmail');
+            localStorage.removeItem('isAdmin'); // Clear admin status
+            alert('You have been logged out.');
+            window.location.href = 'index.html';
+        });
+
+        // --- Add Campaign Form Submission (Client-side) ---
+        addCampaignForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            if (!isAdmin) { // Double check on client-side
+                addCampaignMessage.textContent = 'You do not have permission to add campaigns.';
+                addCampaignMessage.className = '';
+                return;
+            }
+
+            const campaignName = document.getElementById('campaignName').value;
+            const campaignDescription = document.getElementById('campaignDescription').value;
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            addCampaignMessage.textContent = 'Adding campaign...';
+            addCampaignMessage.className = '';
+
+            try {
+                // This will call a NEW serverless function: /api/addCampaign
+                const response = await fetch('/api/addCampaign', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // You might include an authorization token here in a real app
+                        // 'Authorization': 'Bearer ' + localStorage.getItem('userToken')
+                    },
+                    body: JSON.stringify({ name: campaignName, description: campaignDescription, startDate, endDate })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    addCampaignMessage.textContent = result.message;
+                    addCampaignMessage.className = 'success';
+                    addCampaignForm.reset(); // Clear the form
+                    console.log('Campaign added:', result);
+                    // Optionally, refresh 'My Campaigns List' or 'Campaigns' section here
+                } else {
+                    addCampaignMessage.textContent = result.message || 'Failed to add campaign.';
+                    addCampaignMessage.className = '';
+                    console.error('Failed to add campaign:', result);
+                }
+            } catch (error) {
+                addCampaignMessage.textContent = 'Network error. Could not add campaign.';
+                addCampaignMessage.className = '';
+                console.error('Fetch error:', error);
+            }
+        });
+
 
         // Handle initial sidebar state for desktop vs mobile
         function handleSidebarState() {
@@ -375,7 +507,6 @@
             }
         }
 
-        // Initial call and on resize
         handleSidebarState();
         window.addEventListener('resize', handleSidebarState);
     </script>
