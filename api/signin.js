@@ -59,7 +59,14 @@ module.exports = async (req, res) => {
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        res.status(200).json({ message: 'Sign in successful!', user: { email: user.email } });
+        // --- IMPORTANT CHANGE HERE: Return isAdmin status ---
+        res.status(200).json({
+            message: 'Sign in successful!',
+            user: {
+                email: user.email,
+                isAdmin: user.isAdmin || false // Include isAdmin status, default to false if not present
+            }
+        });
 
     } catch (error) {
         console.error('Sign In Error:', error); // Log the full error for debugging in Vercel logs
