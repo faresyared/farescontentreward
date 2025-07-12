@@ -5,64 +5,57 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <style>
+        /* Basic reset */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
             font-family: Arial, sans-serif;
             background-color: #f3f4f6;
-            margin: 0;
-            padding: 0;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-        }
-
-        .container {
-            background-color: #fff;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 100%;
-            max-width: 400px;
+            flex-direction: column;
+            color: #333;
         }
 
         h2 {
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 300px;
             text-align: center;
-            color: #333;
-            margin-bottom: 20px;
         }
 
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        .input-group label {
-            font-size: 14px;
-            color: #555;
-            margin-bottom: 5px;
-            display: block;
-        }
-
-        .input-group input {
+        input[type="text"], input[type="email"], input[type="password"] {
             width: 100%;
             padding: 12px;
-            border: 1px solid #ddd;
+            margin: 10px 0;
             border-radius: 4px;
+            border: 1px solid #ddd;
             font-size: 16px;
-            color: #333;
-            background-color: #fafafa;
-            transition: border-color 0.3s ease;
         }
 
-        .input-group input:focus {
+        input[type="text"]:focus, input[type="email"]:focus, input[type="password"]:focus {
             border-color: #4CAF50;
             outline: none;
         }
 
-        .btn {
+        button {
             width: 100%;
             padding: 12px;
             background-color: #4CAF50;
-            color: #fff;
+            color: white;
             border: none;
             border-radius: 4px;
             font-size: 16px;
@@ -70,52 +63,37 @@
             transition: background-color 0.3s ease;
         }
 
-        .btn:hover {
+        button:hover {
             background-color: #45a049;
         }
 
-        .signin-link {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
+        .links {
+            margin-top: 20px;
             font-size: 14px;
         }
 
-        .signin-link a {
+        .links a {
             color: #4CAF50;
             text-decoration: none;
         }
 
-        .signin-link a:hover {
+        .links a:hover {
             text-decoration: underline;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Sign Up</h2>
-        <form action="#" method="POST">
-            <div class="input-group">
-                <label for="username">Username</label>
-                <input type="text" id="username" name="username" required placeholder="Choose a username">
-            </div>
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required placeholder="Enter your email">
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required placeholder="Create a password">
-            </div>
-            <div class="input-group">
-                <label for="confirm-password">Confirm Password</label>
-                <input type="password" id="confirm-password" name="confirm-password" required placeholder="Confirm your password">
-            </div>
-            <button type="submit" class="btn">Sign Up</button>
-        </form>
-        <div class="signin-link">
-            <p>Already have an account? <a href="signin.html">Sign in</a></p>
-        </div>
+    <h2>Sign Up</h2>
+    <form action="http://localhost:3000/signup" method="POST">
+        <input type="text" name="username" placeholder="Username" required><br>
+        <input type="email" name="email" placeholder="Email" required><br>
+        <input type="password" name="password" placeholder="Password" required><br>
+        <button type="submit">Sign Up</button>
+    </form>
+
+    <div class="links">
+        <h3>Already have an account?</h3>
+        <a href="http://localhost:3000/signin">Sign In</a>
     </div>
 </body>
 </html>
