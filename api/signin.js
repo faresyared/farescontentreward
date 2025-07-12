@@ -1,6 +1,6 @@
-// api/signup.js
+// api/signin.js
 const { MongoClient } = require('mongodb');
-const bcrypt = require('bcryptjs'); // Import bcryptjs for password hashing
+const bcrypt = require('bcryptjs'); // Import bcryptjs for password comparison
 
 const uri = process.env.MONGODB_URI;
 
@@ -17,7 +17,7 @@ async function connectToDatabase() {
         await cachedClient.connect();
     }
 
-    // IMPORTANT: Use the same database name as in your signin.js and Atlas
+    // IMPORTANT: Use the same database name as in your signup.js and Atlas
     // Make sure 'sheinfw3' is your actual database name
     cachedDb = cachedClient.db('sheinfw3');
     return cachedDb;
@@ -44,26 +44,25 @@ module.exports = async (req, res) => {
         const db = await connectToDatabase();
         const usersCollection = db.collection('users'); // Your users collection name
 
-        // 1. Check if user already exists
-        const existingUser = await usersCollection.findOne({ email: email });
-        if (existingUser) {
-            return res.status(409).json({ message: 'User with this email already exists.' });
+        const user = await usersCollection.findOne({ email: email });
+
+        if (!user) {
+            // Return generic message for security (don't tell attacker if email exists)
+            return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        // 2. Hash the password before storing it
-        // bcrypt.hash(password, saltRounds) - 10 is a good default for salt rounds
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Compare the provided password with the HASHED password stored in the database
+        const isMatch = await bcrypt.compare(password, user.password);
 
-        // 3. Insert new user with the hashed password
-        const result = await usersCollection.insertOne({
-            email: email,
-            password: hashedPassword // Store the HASHED password
-        });
+        if (!isMatch) {
+            // Return generic message for security
+            return res.status(401).json({ message: 'Invalid credentials.' });
+        }
 
-        res.status(201).json({ message: 'User registered successfully!', userId: result.insertedId });
+        res.status(200).json({ message: 'Sign in successful!', user: { email: user.email } });
 
     } catch (error) {
-        console.error('Sign Up Error:', error); // Log the full error for debugging in Vercel logs
+        console.error('Sign In Error:', error); // Log the full error for debugging in Vercel logs
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 };
