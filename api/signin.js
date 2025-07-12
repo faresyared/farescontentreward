@@ -25,7 +25,7 @@ async function connectToDatabase() {
     }
 
     // Replace 'your_database_name' with the actual name of your database in MongoDB Atlas
-    cachedDb = cachedClient.db('your_database_name');
+    cachedDb = cachedClient.db('sheinfw3');
     console.log("MongoDB connected or reused connection.");
     return cachedDb;
 }
