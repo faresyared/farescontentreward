@@ -62,13 +62,14 @@ module.exports = async (req, res) => {
         const users = await usersCollection.find({
             $or: [
                 { username: { $regex: searchRegex } },
-                { email: { $regex: searchRegex } } // You might want to allow email search for other users, or remove it.
-                // Add 'name' here if you have a general 'name' field
+                { email: { $regex: searchRegex } },
+                // Add a search on the part of the email before '@' as a "name" fallback
+                { email: { $regex: new RegExp(`^${searchQuery.split('@')[0]}`, 'i') } }
             ]
         })
         .project({ // Only project non-sensitive fields for general users
             username: 1,
-            email: 1, // Only if you want email visible to other users
+            email: 1, // Keep email visible to other users for now
             profilePhotoUrl: 1 // Allow displaying their profile photo
             // DO NOT project 'phoneNumber', 'role', 'isAdmin', 'country', etc.
         })
