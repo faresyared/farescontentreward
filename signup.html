@@ -80,22 +80,54 @@
         .links a:hover {
             text-decoration: underline;
         }
+
+        .error-message {
+            color: red;
+            margin-top: 10px;
+            margin-bottom: 10px; /* Added margin for spacing */
+            display: none; /* Hidden by default */
+        }
     </style>
 </head>
 <body>
     <h2>Sign Up</h2>
-    <!-- POST request to backend for handling sign-up -->
-    <form action="https://farescontentreward.vercel.app/signup.html" method="POST">
+    <form action="/signup" method="POST">
         <input type="text" name="username" placeholder="Username" required><br>
         <input type="email" name="email" placeholder="Email" required><br>
         <input type="password" name="password" placeholder="Password" required><br>
         <button type="submit">Sign Up</button>
     </form>
 
+    <div class="error-message" id="signup-error-message"></div>
+
     <div class="links">
         <h3>Already have an account?</h3>
-        <!-- Sign In link points to your Vercel URL -->
-        <a href="https://farescontentreward.vercel.app">Sign In</a>
+        <a href="/">Sign In</a>
     </div>
+
+    <script>
+        const signupErrorMessage = document.getElementById('signup-error-message');
+        const urlParams = new URLSearchParams(window.location.search);
+        const error = urlParams.get('error'); // Get the 'error' parameter from the URL
+
+        if (error) {
+            signupErrorMessage.style.display = 'block'; // Show the error message div
+            if (error === 'usernameexists') {
+                signupErrorMessage.textContent = 'This username is already taken. Please choose another.';
+            } else if (error === 'emailexists') {
+                signupErrorMessage.textContent = 'This email is already registered. Please use another.';
+            } else if (error === 'servererror') {
+                signupErrorMessage.textContent = 'An unexpected error occurred during signup. Please try again.';
+            } else if (error === 'signupSuccess') {
+                // This block is if you want a success message on the signup page
+                // The server redirects to '/' on success, so this might not fire unless you change that.
+                // For now, it's just an example of how you could handle a 'success' flag.
+                signupErrorMessage.style.color = 'green';
+                signupErrorMessage.textContent = 'Sign up successful! Please sign in.';
+            } else {
+                signupErrorMessage.textContent = 'An unknown error occurred.';
+            }
+        }
+    </script>
 </body>
 </html>
