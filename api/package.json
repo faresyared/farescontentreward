@@ -8,7 +8,6 @@
   },
   "dependencies": {
     "mongodb": "^6.8.0"
-    // If you were using bcryptjs, you'd add it here:
-    // "bcryptjs": "^2.4.3"
+
   }
 }
