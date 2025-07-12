@@ -64,6 +64,18 @@
         #message.success {
             color: green; /* For successful messages */
         }
+        /* New style for the link to sign up */
+        .link {
+            margin-top: 15px;
+            font-size: 0.9em;
+        }
+        .link a {
+            color: #007bff;
+            text-decoration: none;
+        }
+        .link a:hover {
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
@@ -81,6 +93,7 @@
             <button type="submit">Sign In</button>
         </form>
         <p id="message"></p>
+        <p class="link">Don't have an account? <a href="signup.html">Sign Up</a></p>
     </div>
 
     <script>
