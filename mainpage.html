@@ -34,6 +34,7 @@
             border-radius: 8px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
             width: 80%;
+            max-width: 500px; /* Added max-width for better responsiveness */
             text-align: center;
         }
 
@@ -47,6 +48,7 @@
             font-size: 16px;
             cursor: pointer;
             transition: background-color 0.3s ease;
+            margin-top: 15px; /* Added margin-top for spacing */
         }
 
         button:hover {
@@ -56,6 +58,10 @@
         .links {
             margin-top: 20px;
             font-size: 14px;
+        }
+
+        .links p { /* Added style for the paragraph within links */
+            margin-bottom: 5px;
         }
 
         .links a {
@@ -72,11 +78,11 @@
     <h1>Welcome, Fares!</h1>
     <div class="container">
         <p>You're now on the main page.</p>
-        <button onclick="window.location.href='https://farescontentreward.vercel.app/signin';">Go to Sign In</button>
+        <button onclick="window.location.href='/';">Go to Sign In</button>
 
         <div class="links">
             <p>Don't have an account?</p>
-            <a href="https://farescontentreward.vercel.app/signup">Sign Up</a>
+            <a href="/signup">Sign Up</a>
         </div>
     </div>
 </body>
