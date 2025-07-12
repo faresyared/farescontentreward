@@ -1,8 +1,8 @@
 // api/signup.js
 const { MongoClient } = require('mongodb');
-const bcrypt = require('bcryptjs'); // Import bcryptjs for password hashing
+const bcrypt = require('bcryptjs');
 
-const uri = process.env.MONGODB_URI; // Your MongoDB Atlas connection string
+const uri = process.env.MONGODB_URI;
 
 let cachedClient = null;
 let cachedDb = null;
@@ -17,7 +17,7 @@ async function connectToDatabase() {
         await cachedClient.connect();
     }
 
-    // IMPORTANT: Make sure 'sheinfw3' is your actual database name in MongoDB Atlas
+    // IMPORTANT: Your database name
     cachedDb = cachedClient.db('sheinfw3');
     return cachedDb;
 }
@@ -27,43 +27,63 @@ module.exports = async (req, res) => {
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    // Ensure MONGODB_URI is set
     if (!uri) {
         console.error("ERROR: MONGODB_URI environment variable is NOT SET.");
         return res.status(500).json({ message: "Server configuration error: MONGODB_URI missing. Please check Vercel environment variables." });
     }
 
-    const { email, password } = req.body;
+    // Extract new fields from the request body
+    const { email, password, phoneCode, phoneNumber, country, role } = req.body;
 
-    if (!email || !password) {
-        return res.status(400).json({ message: 'Email and password are required.' });
+    // Enhanced validation for all new required fields
+    if (!email || !password || !phoneCode || !phoneNumber || !country || !role) {
+        return res.status(400).json({ message: 'All fields are required for signup.' });
+    }
+
+    // Basic validation for role
+    if (!['clipper', 'content_creator'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role selected.' });
     }
 
     try {
         const db = await connectToDatabase();
-        // IMPORTANT: Ensure 'users' is the actual name of your collection
-        const usersCollection = db.collection('users');
+        const usersCollection = db.collection('users'); // Your users collection name
 
-        // 1. Check if user already exists
+        // Check if user already exists
         const existingUser = await usersCollection.findOne({ email: email });
         if (existingUser) {
-            return res.status(409).json({ message: 'User with this email already exists.' }); // 409 Conflict
+            return res.status(409).json({ message: 'User with this email already exists.' });
         }
 
-        // 2. Hash the password before storing it
-        // 10 is a good default for salt rounds, increasing security
-        const hashedPassword = await bcrypt.hash(password, 10);
+        // Hash the password
+        const hashedPassword = await bcrypt.hash(password, 10); // 10 is the salt rounds
 
-        // 3. Insert new user with the hashed password
-        const result = await usersCollection.insertOne({
+        // Create new user document with all details
+        const newUser = {
             email: email,
-            password: hashedPassword // Store the HASHED password
+            password: hashedPassword,
+            phoneCode: phoneCode,
+            phoneNumber: phoneNumber,
+            country: country,
+            role: role, // Store the chosen role
+            isAdmin: false, // Default to false for new sign-ups
+            createdAt: new Date()
+        };
+
+        const result = await usersCollection.insertOne(newUser);
+
+        res.status(201).json({
+            message: 'User registered successfully!',
+            userId: result.insertedId,
+            user: {
+                email: newUser.email,
+                country: newUser.country,
+                role: newUser.role
+            }
         });
 
-        res.status(201).json({ message: 'User registered successfully!', userId: result.insertedId }); // 201 Created
-
     } catch (error) {
-        console.error('Sign Up Error:', error); // Log the full error for debugging in Vercel logs
+        console.error('Sign Up Error:', error);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 };
