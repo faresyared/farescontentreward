@@ -1,89 +1,84 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main Page</title>
-    <style>
-        /* Basic reset */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+// ... (Your existing server.js code, including requires, app.use, session setup, mongoose connection, and User schema) ...
+
+// Define a user schema using Mongoose (already exists in your server.js)
+const userSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true } // This will store the HASHED password
+});
+
+const User = mongoose.model('User', userSchema);
+
+
+// Sign-up route (POST method to handle user registration) - (already exists in your server.js)
+app.post('/signup', async (req, res) => {
+    const { username, email, password } = req.body;
+
+    try {
+        const existingUser = await User.findOne({ $or: [{ username: username }, { email: email }] });
+        if (existingUser) {
+            const errorType = existingUser.username === username ? 'usernameexists' : 'emailexists';
+            return res.redirect(`/signup?error=${errorType}`);
         }
 
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f3f4f6;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-            color: #333;
-        }
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
 
-        h1 {
-            color: #4CAF50;
-            margin-bottom: 20px;
-        }
+        const newUser = new User({ username, email, password: hashedPassword });
+        await newUser.save();
 
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            width: 80%;
-            max-width: 500px; /* Added max-width for better responsiveness */
-            text-align: center;
-        }
+        res.redirect('/?signupSuccess=true'); // Redirect to Sign In page with success flag
+    } catch (err) {
+        console.error('Error during user signup:', err);
+        res.redirect('/signup?error=servererror');
+    }
+});
 
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-            margin-top: 15px; /* Added margin-top for spacing */
-        }
+// Sign-in route (POST method to handle user login) - (already exists in your server.js)
+app.post('/signin', async (req, res) => {
+    const { username, password } = req.body;
 
-        button:hover {
-            background-color: #45a049;
-        }
+    try {
+        const user = await User.findOne({ username });
 
-        .links {
-            margin-top: 20px;
-            font-size: 14px;
-        }
+        if (user) {
+            const isMatch = await bcrypt.compare(password, user.password);
 
-        .links p { /* Added style for the paragraph within links */
-            margin-bottom: 5px;
+            if (isMatch) {
+                req.session.user = { id: user._id, username: user.username };
+                return res.redirect('/mainpage'); // *** IMPORTANT: Redirect to /mainpage on successful login ***
+            }
         }
+        res.redirect('/?error=true');
+    } catch (err) {
+        console.error('Error during user signin:', err);
+        res.redirect('/?error=servererror');
+    }
+});
 
-        .links a {
-            color: #4CAF50;
-            text-decoration: none;
-        }
+// Serve the Sign In page when visiting the root URL (/) - (already exists in your server.js)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
-        .links a:hover {
-            text-decoration: underline;
-        }
-    </style>
-</head>
-<body>
-    <h1>Welcome, Fares!</h1>
-    <div class="container">
-        <p>You're now on the main page.</p>
-        <button onclick="window.location.href='/';">Go to Sign In</button>
+// Serve the Sign Up page when visiting the /signup URL - (already exists in your server.js)
+app.get('/signup', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
 
-        <div class="links">
-            <p>Don't have an account?</p>
-            <a href="/signup">Sign Up</a>
-        </div>
-    </div>
-</body>
-</html>
+// *** NEW ROUTE: Serve the Main Page (Dashboard) ***
+app.get('/mainpage', (req, res) => {
+    // Check if the user is logged in
+    if (req.session.user) {
+        res.sendFile(path.join(__dirname, 'public', 'mainpage.html')); // Serve the main page HTML
+    } else {
+        // If not logged in, redirect to the sign-in page or show an unauthorized message
+        res.status(401).send('You must be logged in to view this page. <a href="/">Go to Sign In</a>');
+    }
+});
+
+// ... (Your server.listen code at the end of server.js) ...
+const port = process.env.PORT || 3000;
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+});
