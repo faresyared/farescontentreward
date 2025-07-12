@@ -1,75 +1,83 @@
 // api/signin.js
 const { MongoClient } = require('mongodb');
 
-// IMPORTANT: This URI will be pulled from Vercel's environment variables
 const uri = process.env.MONGODB_URI;
 
+// Log 1: Function started
+console.log("LOG 1: signin.js function started."); 
+
 if (!uri) {
-    // This log will appear in Vercel's deployment logs if the variable is missing
-    console.error("MONGODB_URI environment variable is NOT SET. Your API will not work.");
-    // In a real app, you might want to return an error immediately here.
+    console.error("ERROR: MONGODB_URI environment variable is NOT SET. Your API will not work.");
+    // If URI is missing, we might exit early, which explains no further logs
+    return res.status(500).json({ message: "Server configuration error: MONGODB_URI missing." });
 }
 
-// This client will be reused across serverless function invocations
 let cachedClient = null;
 let cachedDb = null;
 
 async function connectToDatabase() {
+    console.log("LOG 2: Attempting to connect to database.");
     if (cachedDb) {
+        console.log("LOG 2.1: Reusing cached database connection.");
         return cachedDb;
     }
 
     if (!cachedClient) {
+        console.log("LOG 2.2: Creating new MongoClient and connecting.");
         cachedClient = new MongoClient(uri);
-        await cachedClient.connect();
+        await cachedClient.connect(); // This line can throw an error if connection fails
     }
 
-    // Replace 'your_database_name' with the actual name of your database in MongoDB Atlas
-    cachedDb = cachedClient.db('sheinfw3');
-    console.log("MongoDB connected or reused connection.");
+    cachedDb = cachedClient.db('your_database_name'); // Replace with your actual database name
+    console.log("LOG 3: MongoDB connected or reused connection. Database selected.");
     return cachedDb;
 }
 
 module.exports = async (req, res) => {
-    // Vercel serverless functions come with built-in body parsing for JSON
-    // and handle CORS for simple cases.
+    console.log("LOG 4: Request received in module.exports.");
+    console.log("LOG 4.1: Request method:", req.method);
+    console.log("LOG 4.2: Request body:", req.body); // Check if body is received
 
     if (req.method !== 'POST') {
-        // Only allow POST requests for sign-in
+        console.log("LOG 4.3: Method not POST, returning 405.");
         return res.status(405).json({ message: 'Method Not Allowed' });
     }
 
-    const { email, password } = req.body; // Get email and password from the request
+    const { email, password } = req.body;
 
     if (!email || !password) {
+        console.log("LOG 4.4: Missing email or password, returning 400.");
         return res.status(400).json({ message: 'Email and password are required.' });
     }
 
     try {
+        console.log("LOG 5: Attempting to get database connection.");
         const db = await connectToDatabase();
-        // Replace 'users' with the actual name of your collection where users are stored
-        const usersCollection = db.collection('users');
+        console.log("LOG 6: Database connection obtained. Attempting to get collection 'users'.");
+        const usersCollection = db.collection('users'); // Replace 'users' if your collection name is different
 
-        // Find a user by email
+        console.log("LOG 7: Looking for user with email:", email);
         const user = await usersCollection.findOne({ email: email });
+        console.log("LOG 8: FindOne result:", user ? "User found" : "User not found");
 
         if (!user) {
-            // If no user found with that email
+            console.log("LOG 8.1: User not found, returning 401.");
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
         // !!! SECURITY WARNING: This is INSECURE for real applications !!!
-        // You MUST use password hashing (e.g., bcryptjs) in production.
-        // For now, we're doing a direct string comparison for learning purposes.
         if (password !== user.password) {
+            console.log("LOG 8.2: Password mismatch, returning 401.");
             return res.status(401).json({ message: 'Invalid credentials.' });
         }
 
-        // If email and password match (insecurely for now)
+        console.log("LOG 9: Sign-in successful, returning 200.");
         res.status(200).json({ message: 'Sign in successful!', user: { email: user.email } });
 
     } catch (error) {
-        console.error('API Error:', error);
+        // This catch block handles errors within the try block
+        console.error('LOG ERROR: Full error details:', error); // Log the full error object
+        console.error('LOG ERROR: Error message:', error.message);
         res.status(500).json({ message: 'Internal Server Error', error: error.message });
     }
 };
