@@ -21,255 +21,442 @@
         body {
             font-family: 'Poppins', sans-serif;
             margin: 0;
-            padding: 0;
-            min-height: 100vh;
+            padding: 20px;
             background-color: var(--background-light);
             color: var(--text-color-light);
-            line-height: 1.6;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
 
         .container {
-            max-width: 900px;
-            margin: 40px auto;
             background-color: var(--card-background);
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px var(--shadow-color);
-        }
-
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid var(--primary-color);
-        }
-
-        .header h1 {
-            color: var(--primary-color);
-            font-size: 2.2em;
-            margin: 0;
-            font-weight: 700;
-        }
-
-        .back-button {
-            background-color: var(--secondary-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 1em;
-            text-decoration: none;
-            transition: background-color 0.2s ease;
-        }
-
-        .back-button:hover {
-            background-color: #5a6268;
-        }
-
-        .campaign-image {
-            width: 100%;
-            max-height: 400px;
-            object-fit: cover;
             border-radius: 8px;
-            margin-bottom: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .section-title {
-            color: var(--primary-color);
-            font-size: 1.6em;
-            margin-top: 30px;
-            margin-bottom: 15px;
-            padding-bottom: 5px;
-            border-bottom: 1px dashed var(--border-color);
-            font-weight: 600;
-        }
-
-        .info-group {
-            margin-bottom: 15px;
-        }
-
-        .info-group strong {
-            display: inline-block;
-            width: 150px;
-            color: #555;
-        }
-
-        .info-group span, .info-group p {
-            color: var(--text-color-light);
-        }
-
-        ul {
-            list-style-type: disc;
-            padding-left: 20px;
+            box-shadow: 0 4px 12px var(--shadow-color);
+            width: 100%;
+            max-width: 900px;
             margin-bottom: 20px;
         }
 
-        ul li {
-            margin-bottom: 8px;
+        h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
         }
 
-        .tag-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            margin-top: 10px;
-        }
-
-        .tag {
-            background-color: #e9ecef;
-            color: #495057;
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            font-weight: 500;
-        }
-
-        .video-gallery {
+        .campaign-details-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: 1fr;
             gap: 20px;
-            margin-top: 20px;
         }
 
-        .video-item {
-            position: relative;
-            padding-bottom: 56.25%; /* 16:9 aspect ratio */
-            height: 0;
-            overflow: hidden;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .video-item iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
+        .campaign-details-grid img {
             width: 100%;
-            height: 100%;
-            border: 0;
-            border-radius: 8px; /* For rounded corners on the iframe itself */
+            max-height: 350px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
-        /* Responsive adjustments */
-        @media (max-width: 768px) {
-            .container {
-                margin: 20px;
-                padding: 20px;
+        .detail-item p {
+            margin: 5px 0;
+            line-height: 1.6;
+        }
+
+        .detail-item strong {
+            color: var(--primary-color);
+            display: inline-block;
+            min-width: 120px; /* Align labels */
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group textarea,
+        .form-group input[type="date"],
+        .form-group input[type="number"],
+        .form-group select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1em;
+            box-sizing: border-box;
+        }
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group ul {
+            list-style: disc;
+            padding-left: 20px;
+            margin: 5px 0 15px;
+            border: 1px dashed #eee;
+            padding: 10px;
+            border-radius: 5px;
+            background-color: var(--background-light);
+        }
+        .form-group ul li {
+            margin-bottom: 5px;
+        }
+        .form-group a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        .form-group a:hover {
+            text-decoration: underline;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .button-group button {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.2s ease;
+        }
+
+        .button-group button:hover {
+            background-color: #0056b3;
+        }
+
+        .button-group button.cancel {
+            background-color: var(--secondary-color);
+        }
+        .button-group button.cancel:hover {
+            background-color: #5a6268;
+        }
+
+        #editMessage {
+            text-align: center;
+            margin-top: 20px;
+            font-weight: bold;
+            color: red;
+        }
+        #editMessage.success {
+            color: green;
+        }
+
+        .campaign-status-display {
+            font-size: 1.1em;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+        .campaign-status-display .status-circle {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            margin-right: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        @media (min-width: 768px) {
+            .campaign-details-grid {
+                grid-template-columns: 1fr 1fr;
             }
-            .header h1 {
-                font-size: 1.8em;
+            .campaign-details-grid .campaign-image-container {
+                grid-column: 1 / 2;
+                grid-row: 1 / span 2; /* Span multiple rows if content is long */
             }
-            .info-group strong {
-                width: 100px; /* Adjust for smaller screens */
+            .campaign-details-grid .campaign-info-container {
+                grid-column: 2 / 3;
+                grid-row: 1 / span 2;
             }
-            .video-gallery {
-                grid-template-columns: 1fr; /* Stack videos on small screens */
+            .button-group {
+                grid-column: 1 / -1; /* Span all columns */
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1 id="campaignDetailTitle">Campaign Details</h1>
-            <a href="dashboard.html" class="back-button">Back to Dashboard</a>
-        </div>
+    <div class="container" id="campaignDetailsContainer">
+        <h2>Campaign Details</h2>
+        <div id="loading" style="text-align: center; padding: 20px;">Loading campaign...</div>
+        <div id="errorMessage" style="text-align: center; color: red; padding: 20px; display: none;"></div>
 
-        <div id="campaignDetailContent">
-            <p>Loading campaign details...</p>
+        <form id="campaignEditForm" style="display: none;">
+            <div class="campaign-details-grid">
+                <div class="form-group campaign-image-container">
+                    <label for="campaignPhotoPreview">Campaign Photo:</label>
+                    <img id="campaignPhotoPreview" style="max-width: 100%; height: auto; border-radius: 8px;" src="https://via.placeholder.com/400x200?text=Campaign+Image" alt="Campaign Image">
+                    <input type="file" id="campaignPhotoInput" accept="image/*" style="margin-top: 10px;">
+                    <p style="font-size: 0.8em; color: #777; margin-top: 5px;">Upload a new image to change it.</p>
+                </div>
+
+                <div class="campaign-info-container">
+                    <input type="hidden" id="campaignId">
+
+                    <div class="form-group">
+                        <label for="name">Campaign Name:</label>
+                        <input type="text" id="name" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Description:</label>
+                        <textarea id="description" name="description" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="status">Status:</label>
+                        <select id="status" name="status">
+                            <option value="Active">Active</option>
+                            <option value="Expiring Soon">Expiring Soon</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Canceled">Canceled</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Category:</label>
+                        <select id="category" name="category" required>
+                            <option value="">Select a Category</option>
+                            <option value="entertainment">Entertainment</option>
+                            <option value="trading">Trading</option>
+                            <option value="motivational">Motivational</option>
+                            <option value="brands">Brands</option>
+                            <option value="ugc">UGC (User Generated Content)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="customerRules">Rules for Customers (one per line):</label>
+                        <textarea id="customerRules" name="customerRules"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="associatedFiles">Associated Files/Links (one per line):</label>
+                        <textarea id="associatedFiles" name="associatedFiles"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="clipperPlatforms">Clipper Platforms (comma-separated):</label>
+                        <input type="text" id="clipperPlatforms" name="clipperPlatforms">
+                    </div>
+                    <div class="form-group">
+                        <label for="remainingBudget">Remaining Budget ($):</label>
+                        <input type="number" id="remainingBudget" name="remainingBudget" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="payPer1kViews">Pay per 1K Views ($):</label>
+                        <input type="number" id="payPer1kViews" name="payPer1kViews" min="0" step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label for="videoExamples">Video Examples (YouTube embed URLs - one per line):</label>
+                        <textarea id="videoExamples" name="videoExamples"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="startDate">Start Date:</label>
+                        <input type="date" id="startDate" name="startDate">
+                    </div>
+                    <div class="form-group">
+                        <label for="endDate">End Date:</label>
+                        <input type="date" id="endDate" name="endDate">
+                    </div>
+                </div>
             </div>
+            <div class="button-group">
+                <button type="submit" id="saveCampaignBtn">Save Changes</button>
+                <button type="button" class="cancel" onclick="window.history.back()">Cancel</button>
+            </div>
+            <p id="editMessage"></p>
+        </form>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', async () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const campaignId = urlParams.get('id');
-            const campaignDetailContent = document.getElementById('campaignDetailContent');
-            const campaignDetailTitle = document.getElementById('campaignDetailTitle');
+        const campaignPhotoPreview = document.getElementById('campaignPhotoPreview');
+        const campaignPhotoInput = document.getElementById('campaignPhotoInput');
+        const campaignEditForm = document.getElementById('campaignEditForm');
+        const editMessage = document.getElementById('editMessage');
+        const loading = document.getElementById('loading');
+        const errorMessage = document.getElementById('errorMessage');
 
-            if (!campaignId) {
-                campaignDetailContent.innerHTML = '<p>No campaign ID provided.</p>';
-                campaignDetailTitle.textContent = 'Error';
+        const campaignIdField = document.getElementById('campaignId');
+        const nameField = document.getElementById('name');
+        const descriptionField = document.getElementById('description');
+        const statusField = document.getElementById('status'); // New Status field
+        const categoryField = document.getElementById('category');
+        const customerRulesField = document.getElementById('customerRules');
+        const associatedFilesField = document.getElementById('associatedFiles');
+        const clipperPlatformsField = document.getElementById('clipperPlatforms');
+        const remainingBudgetField = document.getElementById('remainingBudget');
+        const payPer1kViewsField = document.getElementById('payPer1kViews');
+        const videoExamplesField = document.getElementById('videoExamples');
+        const startDateField = document.getElementById('startDate');
+        const endDateField = document.getElementById('endDate');
+
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const userToken = localStorage.getItem('userToken');
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (!userToken) {
+                alert('You must be logged in to view campaign details.');
+                window.location.href = 'index.html';
                 return;
             }
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const campaignId = urlParams.get('id');
+
+            if (campaignId) {
+                fetchCampaignDetails(campaignId);
+            } else {
+                loading.style.display = 'none';
+                errorMessage.textContent = 'Campaign ID not found in URL.';
+                errorMessage.style.display = 'block';
+            }
+        });
+
+        async function fetchCampaignDetails(id) {
+            loading.style.display = 'block';
+            campaignEditForm.style.display = 'none';
+            errorMessage.style.display = 'none';
+
             try {
-                const response = await fetch(`/api/getCampaignDetail?id=${encodeURIComponent(campaignId)}`);
+                const response = await fetch(`/api/getCampaignDetails?id=${id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${userToken}` // Always send token for API access
+                    }
+                });
                 const result = await response.json();
 
-                if (response.ok && result.campaign) {
+                if (response.ok) {
                     const campaign = result.campaign;
-                    campaignDetailTitle.textContent = campaign.name;
+                    populateForm(campaign);
+                    loading.style.display = 'none';
+                    campaignEditForm.style.display = 'block';
 
-                    let customerRulesHtml = campaign.customerRules && campaign.customerRules.length > 0
-                        ? `<ul>${campaign.customerRules.map(rule => `<li>${rule}</li>`).join('')}</ul>`
-                        : '<p>No specific rules provided for customers.</p>';
-
-                    let associatedFilesHtml = campaign.associatedFiles && campaign.associatedFiles.length > 0
-                        ? `<ul>${campaign.associatedFiles.map(file => `<li><a href="${file.url}" target="_blank">${file.type.charAt(0).toUpperCase() + file.type.slice(1)} Link</a>: ${file.url}</li>`).join('')}</ul>`
-                        : '<p>No associated files/links provided.</p>';
-
-                    let clipperPlatformsHtml = campaign.clipperPlatforms && campaign.clipperPlatforms.length > 0
-                        ? `<div class="tag-list">${campaign.clipperPlatforms.map(platform => `<span class="tag">${platform.charAt(0).toUpperCase() + platform.slice(1)}</span>`).join('')}</div>`
-                        : '<p>No specific platforms mentioned.</p>';
-
-                    let videoExamplesHtml = campaign.videoExamples && campaign.videoExamples.length > 0
-                        ? `<div class="video-gallery">${campaign.videoExamples.map(url => `<div class="video-item"><iframe src="${url}" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>`).join('')}</div>`
-                        : '<p>No video examples provided.</p>';
-
-                    campaignDetailContent.innerHTML = `
-                        <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/800x450?text=Campaign+Image'}" alt="${campaign.name}" class="campaign-image">
-
-                        <div class="info-group">
-                            <strong>Description:</strong>
-                            <p>${campaign.description}</p>
-                        </div>
-
-                        <div class="info-group">
-                            <strong>Category:</strong>
-                            <span>${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</span>
-                        </div>
-
-                        <div class="info-group">
-                            <strong>Budget:</strong>
-                            <span>$${campaign.remainingBudget.toLocaleString()}</span>
-                        </div>
-
-                        <div class="info-group">
-                            <strong>Pay per 1K Views:</strong>
-                            <span>$${campaign.payPer1kViews}</span>
-                        </div>
-
-                        <div class="info-group">
-                            <strong>Dates:</strong>
-                            <span>${new Date(campaign.startDate).toLocaleDateString()} - ${new Date(campaign.endDate).toLocaleDateString()}</span>
-                        </div>
-
-                        <h3 class="section-title">Rules for Customers</h3>
-                        ${customerRulesHtml}
-
-                        <h3 class="section-title">Associated Files/Links</h3>
-                        ${associatedFilesHtml}
-
-                        <h3 class="section-title">Clipper Platforms</h3>
-                        ${clipperPlatformsHtml}
-
-                        <h3 class="section-title">Video Examples</h3>
-                        ${videoExamplesHtml}
-                    `;
+                    // Disable editing fields if not admin
+                    if (!isAdmin) {
+                        Array.from(campaignEditForm.elements).forEach(element => {
+                            element.readOnly = true;
+                            element.disabled = true; // Disable select, file inputs
+                            if (element.type === 'submit') { // Hide save button for non-admins
+                                element.style.display = 'none';
+                            }
+                        });
+                        campaignPhotoInput.style.display = 'none'; // Hide file input for non-admins
+                        document.querySelector('.button-group button.cancel').style.display = 'none'; // Hide cancel too
+                        document.querySelector('.button-group').style.justifyContent = 'center';
+                        document.querySelector('#saveCampaignBtn').style.display = 'none';
+                    }
 
                 } else {
-                    campaignDetailContent.innerHTML = `<p>${result.message || 'Failed to load campaign details.'}</p>`;
-                    campaignDetailTitle.textContent = 'Campaign Not Found';
+                    errorMessage.textContent = result.message || 'Failed to load campaign details.';
+                    errorMessage.style.display = 'block';
+                    loading.style.display = 'none';
                 }
             } catch (error) {
-                console.error('Network error fetching campaign details:', error);
-                campaignDetailContent.innerHTML = '<p>Network error. Could not load campaign details.</p>';
-                campaignDetailTitle.textContent = 'Error';
+                errorMessage.textContent = 'Network error: Could not fetch campaign details.';
+                errorMessage.style.display = 'block';
+                loading.style.display = 'none';
+                console.error('Fetch error:', error);
+            }
+        }
+
+        function populateForm(campaign) {
+            campaignIdField.value = campaign._id;
+            nameField.value = campaign.name;
+            descriptionField.value = campaign.description;
+            statusField.value = campaign.status || 'Active'; // Set status, default to 'Active'
+            categoryField.value = campaign.category;
+            customerRulesField.value = Array.isArray(campaign.customerRules) ? campaign.customerRules.join('\n') : campaign.customerRules;
+            associatedFilesField.value = Array.isArray(campaign.associatedFiles) ? campaign.associatedFiles.map(f => f.url).join('\n') : campaign.associatedFiles;
+            clipperPlatformsField.value = Array.isArray(campaign.clipperPlatforms) ? campaign.clipperPlatforms.join(', ') : campaign.clipperPlatforms;
+            remainingBudgetField.value = campaign.remainingBudget;
+            payPer1kViewsField.value = campaign.payPer1kViews;
+            videoExamplesField.value = Array.isArray(campaign.videoExamples) ? campaign.videoExamples.join('\n') : campaign.videoExamples;
+            startDateField.value = campaign.startDate ? new Date(campaign.startDate).toISOString().split('T')[0] : '';
+            endDateField.value = campaign.endDate ? new Date(campaign.endDate).toISOString().split('T')[0] : '';
+
+            if (campaign.campaignPhotoUrl) {
+                campaignPhotoPreview.src = campaign.campaignPhotoUrl;
+            }
+        }
+
+        campaignPhotoInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    campaignPhotoPreview.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        campaignEditForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            if (!isAdmin) {
+                editMessage.textContent = 'You do not have permission to edit campaigns.';
+                editMessage.className = '';
+                return;
+            }
+
+            editMessage.textContent = 'Saving changes...';
+            editMessage.className = '';
+
+            const formData = new FormData();
+            formData.append('id', campaignIdField.value);
+            formData.append('name', nameField.value);
+            formData.append('description', descriptionField.value);
+            formData.append('status', statusField.value); // Append status
+            formData.append('category', categoryField.value);
+            formData.append('customerRules', customerRulesField.value);
+            formData.append('associatedFiles', associatedFilesField.value);
+            formData.append('clipperPlatforms', clipperPlatformsField.value);
+            formData.append('remainingBudget', remainingBudgetField.value);
+            formData.append('payPer1kViews', payPer1kViewsField.value);
+            formData.append('videoExamples', videoExamplesField.value);
+            formData.append('startDate', startDateField.value);
+            formData.append('endDate', endDateField.value);
+
+            if (campaignPhotoInput.files[0]) {
+                formData.append('campaignPhoto', campaignPhotoInput.files[0]);
+            }
+
+            try {
+                const response = await fetch('/api/updateCampaign', {
+                    method: 'POST', // Using POST for file uploads, could be PUT if no file upload
+                    headers: {
+                        'Authorization': `Bearer ${userToken}`
+                    },
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    editMessage.textContent = result.message;
+                    editMessage.className = 'success';
+                    // Optionally, redirect back or refresh data after successful save
+                    // setTimeout(() => window.history.back(), 2000); // Go back after 2 seconds
+                } else {
+                    editMessage.textContent = result.message || 'Failed to save changes.';
+                    editMessage.className = '';
+                    console.error('Save changes failed:', result);
+                }
+            } catch (error) {
+                editMessage.textContent = 'Network error. Could not save changes.';
+                editMessage.className = '';
+                console.error('Fetch error:', error);
             }
         });
     </script>
