@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET; // Make sure this is set in Vercel
 let cachedClient = null;
 let cachedDb = null;
 
-async function connectToDatabase() {
+async function connectToDatabase() { 
     if (cachedDb) {
         return cachedDb;
     }
