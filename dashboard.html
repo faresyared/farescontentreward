@@ -1092,7 +1092,107 @@ if (isAdmin) {
                 sidebar.classList.remove('collapsed');
                 mainContent.style.marginLeft = '250px';
             }
+        } 
+        // Add this function somewhere in your dashboard.html script
+async function joinCampaign(campaignId) {
+    const userEmail = localStorage.getItem('userEmail');
+    const userToken = localStorage.getItem('userToken');
+
+    if (!userEmail || !userToken) {
+        alert('You must be logged in to add campaigns to your list.');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/joinCampaign', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${userToken}`
+            },
+            body: JSON.stringify({ campaignId: campaignId, userEmail: userEmail })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message);
+            // Optionally, update the button or disable it for this campaign
+            // fetchMyCampaigns(); // Refresh user's joined campaigns if visible
+        } else {
+            alert(result.message || 'Failed to add campaign to your list.');
+            console.error('Join campaign failed:', result);
         }
+    } catch (error) {
+        alert('Network error during joining campaign.');
+        console.error('Fetch error during joining campaign:', error);
+    }
+}
+
+// Function to fetch and display user's joined campaigns
+const myCampaignsListSection = document.getElementById('my-campaigns-list-section');
+async function fetchMyCampaigns() {
+    const userEmail = localStorage.getItem('userEmail');
+    const userToken = localStorage.getItem('userToken');
+
+    if (!userEmail || !userToken) {
+        myCampaignsListSection.innerHTML = '<p>Please log in to view your campaigns.</p>';
+        return;
+    }
+
+    myCampaignsListSection.innerHTML = '<h3>My Campaigns List</h3><p>Loading your campaigns...</p>';
+
+    try {
+        const response = await fetch(`/api/getMyCampaigns?email=${encodeURIComponent(userEmail)}`, {
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+        const result = await response.json();
+
+        if (response.ok && result.campaigns) {
+            if (result.campaigns.length > 0) {
+                myCampaignsListSection.innerHTML = '<h3>My Campaigns List</h3><div class="campaigns-grid"></div>';
+                const myCampaignsGrid = myCampaignsListSection.querySelector('.campaigns-grid');
+                result.campaigns.forEach(campaign => {
+                    const campaignCard = document.createElement('div');
+                    campaignCard.className = 'campaign-card';
+                    campaignCard.innerHTML = `
+                        <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/400x200?text=Campaign+Image'}" alt="${campaign.name}">
+                        <div class="campaign-card-content">
+                            <h4>${campaign.name}</h4>
+                            <p>Category: ${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</p>
+                            <p class="campaign-status"><span class="status-circle" style="background-color: ${getCampaignStatusColor(campaign.status)};"></span> Status: <strong>${campaign.status || 'Active'}</strong></p>
+                            <div class="info-row">
+                                <div class="info-item">Budget: <span>$${campaign.remainingBudget.toLocaleString()}</span></div>
+                                <div class="info-item">Pay/1K Views: <span>$${campaign.payPer1kViews}</span></div>
+                            </div>
+                            </div>
+                    `;
+                    myCampaignsGrid.appendChild(campaignCard);
+                     campaignCard.addEventListener('click', () => {
+                        window.location.href = `campaign-detail.html?id=${campaign._id}`;
+                    });
+                });
+            } else {
+                myCampaignsListSection.innerHTML = '<h3>My Campaigns List</h3><p>You have not joined any campaigns yet. Browse "All Available Campaigns" to get started!</p>';
+            }
+        } else {
+            myCampaignsListSection.innerHTML = '<h3>My Campaigns List</h3><p>Failed to load your campaigns.</p>';
+            console.error('Failed to fetch my campaigns:', result);
+        }
+    } catch (error) {
+        myCampaignsListSection.innerHTML = '<h3>My Campaigns List</h3><p>Network error: Could not load your campaigns.</p>';
+        console.error('Fetch error for my campaigns:', error);
+    }
+}
+
+// In your sidebarLinks.forEach loop, add a case to call fetchMyCampaigns:
+// Find the block: else if (targetSectionId === 'my-campaigns-list-section') {
+// Change it to:
+else if (targetSectionId === 'my-campaigns-list-section') {
+    fetchMyCampaigns(); // Call the function to load user's campaigns
+}
 
         handleSidebarState();
         window.addEventListener('resize', handleSidebarState);
