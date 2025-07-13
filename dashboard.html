@@ -739,16 +739,25 @@ https://www.youtube.com/embed/example2"></textarea>
                         const campaignCard = document.createElement('div');
                         campaignCard.className = 'campaign-card';
                         campaignCard.setAttribute('data-id', campaign._id); // Store campaign ID
-                        campaignCard.innerHTML = `
-                            <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/400x200?text=Campaign+Image'}" alt="${campaign.name}">
-                            <div class="campaign-card-content">
-                                <h4>${campaign.name}</h4>
-                                <p>Category: ${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</p>
-                                <div class="info-row">
-                                    <div class="info-item">Budget: <span>$${campaign.remainingBudget.toLocaleString()}</span></div>
-                                    <div class="info-item">Pay/1K Views: <span>$${campaign.payPer1kViews}</span></div>
-                                </div>
-                            </div>
+                     // Inside fetchAllCampaigns function, where campaignCard is created:
+campaignCard.innerHTML = `
+    <img src="${campaign.campaignPhotoUrl || 'https://via.placeholder.com/400x200?text=Campaign+Image'}" alt="${campaign.name}">
+    <div class="campaign-card-content">
+        <h4>${campaign.name}</h4>
+        <p>Category: ${campaign.category.charAt(0).toUpperCase() + campaign.category.slice(1)}</p>
+        <p class="campaign-status"><span class="status-circle" style="background-color: ${getCampaignStatusColor(campaign.status)};"></span> Status: <strong>${campaign.status || 'Active'}</strong></p>
+        <div class="info-row">
+            <div class="info-item">Budget: <span>$${campaign.remainingBudget.toLocaleString()}</span></div>
+            <div class="info-item">Pay/1K Views: <span>$${campaign.payPer1kViews}</span></div>
+        </div>
+        ${isAdmin ? `
+            <div class="admin-campaign-actions" style="margin-top: 15px; border-top: 1px dashed var(--border-color); padding-top: 10px; display: flex; justify-content: space-around;">
+                <button class="edit-campaign-btn" data-id="${campaign._id}" style="background-color: #007bff; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Edit</button>
+                <button class="delete-campaign-btn" data-id="${campaign._id}" style="background-color: #dc3545; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer;">Delete</button>
+            </div>
+        ` : `<button class="join-campaign-btn" data-id="${campaign._id}" style="background-color: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; width: 100%; margin-top: 15px;">Add to My Campaigns</button>`}
+    </div>
+`;
                         `;
                         campaignsGrid.appendChild(campaignCard);
 
@@ -768,7 +777,36 @@ https://www.youtube.com/embed/example2"></textarea>
                 noCampaigns.style.display = 'block';
             }
         }
+// Add this function somewhere in your dashboard.html script, e.g., below fetchAllCampaigns
+async function deleteCampaign(campaignId) {
+    const userToken = localStorage.getItem('userToken');
+    if (!userToken) {
+        alert('You must be logged in to delete campaigns.');
+        return;
+    }
 
+    try {
+        const response = await fetch(`/api/deleteCampaign?id=${campaignId}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${userToken}`
+            }
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            alert(result.message);
+            fetchAllCampaigns(); // Refresh campaigns list
+        } else {
+            alert(result.message || 'Failed to delete campaign.');
+            console.error('Delete campaign failed:', result);
+        }
+    } catch (error) {
+        alert('Network error during campaign deletion.');
+        console.error('Fetch error during campaign deletion:', error);
+    }
+}
 
         // --- Conditionally display admin elements and fetch data on DOMContentLoaded ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -787,6 +825,38 @@ https://www.youtube.com/embed/example2"></textarea>
                 currentPageTitle.textContent = initialActiveLink.textContent.trim();
                 fetchAllCampaigns(); // Fetch campaigns when the page loads or Campaigns tab is active
             }
+            // Inside fetchAllCampaigns function, after campaignCard is appended to campaignsGrid
+// Add these listeners immediately after `campaignCard.addEventListener('click', ...)`
+if (isAdmin) {
+    const editBtn = campaignCard.querySelector('.edit-campaign-btn');
+    if (editBtn) {
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent card click from firing
+            const campaignId = e.target.dataset.id;
+            window.location.href = `campaign-detail.html?id=${campaignId}`;
+        });
+    }
+
+    const deleteBtn = campaignCard.querySelector('.delete-campaign-btn');
+    if (deleteBtn) {
+        deleteBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent card click from firing
+            const campaignId = e.target.dataset.id;
+            if (confirm('Are you sure you want to delete this campaign?')) {
+                await deleteCampaign(campaignId);
+            }
+        });
+    }
+} else {
+    const joinBtn = campaignCard.querySelector('.join-campaign-btn');
+    if (joinBtn) {
+        joinBtn.addEventListener('click', async (e) => {
+            e.stopPropagation(); // Prevent card click from firing
+            const campaignId = e.target.dataset.id;
+            await joinCampaign(campaignId);
+        });
+    }
+}
         });
 
 
