@@ -2,7 +2,7 @@
   "name": "my-awesome-website",
   "version": "1.0.0",
   "description": "A simple website hosted on Vercel.",
-  "main": "index.js",
+  "main": "index.js", 
   "scripts": {
     "start": "vercel dev"
   },
