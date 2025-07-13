@@ -1,1 +1,19 @@
-
+{
+  "name": "influencer-platform",
+  "version": "1.0.0",
+  "description": "Influencer campaign management platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^1.41.0",
+    "formidable": "^3.5.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.3.0"
+  }
+}
