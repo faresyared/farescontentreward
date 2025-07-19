@@ -1,9 +1,17 @@
+# This section tells Netlify's LIVE server how to build the site.
 [build]
   command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   publish = "frontend/dist"
-  functions = "backend/functions/" # This path is still correct
+  functions = "backend/functions/"
+
+# This NEW section tells 'netlify dev' how to run your site LOCALLY.
+[dev]
+  # Command to start the frontend dev server
+  command = "npm run dev --prefix frontend" 
+  # The port that the frontend dev server will run on
+  targetPort = 5173 
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/index/:splat" # This path is also still correct
+  to = "/.netlify/functions/index/:splat"
   status = 200

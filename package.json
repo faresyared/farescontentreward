@@ -4,7 +4,8 @@
   "scripts": {
     "dev:backend": "node backend/localServer.js",
     "dev:frontend": "npm run dev --prefix frontend",
-    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\""
+    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
+    "dev:netlify": "netlify dev"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
