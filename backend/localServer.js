@@ -1,5 +1,6 @@
 // backend/localServer.js
 
+// This file now mirrors the structure of the serverless function for consistent testing.
 // --- IMPORTS ---
 const express = require('express');
 const mongoose = require('mongoose');
@@ -9,17 +10,51 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 
 // --- CONFIGURATION ---
-// Configure dotenv to find the .env file in this backend folder
 dotenv.config();
-
 const app = express();
 const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
 // --- DATABASE CONNECTION ---
-const connectDB = async () => {
+const connectDB = async () => { /* ... same as index.js ... */ };
+connectDB();
+
+// --- MONGOOSE SCHEMAS ---
+const User = require('./models/User'); // We can still use models locally
+const Campaign = require('./models/Campaign');
+
+// --- MIDDLEWARE ---
+const auth = require('./middleware/auth');
+const adminAuth = async (req, res, next) => {
+    const user = await User.findById(req.user.id);
+    if(user.role !== 'admin') return res.status(403).json({msg: 'Admin resource. Access denied.'});
+    next();
+};
+
+// --- ROUTES ---
+const router = express.Router();
+
+// Auth routes
+router.post('/users/signup', async (req, res) => { /* ... copy from index.js ... */ });
+router.post('/users/signin', async (req, res) => { /* ... copy from index.js ... */ });
+
+// Campaign routes
+router.get('/campaigns', auth, async (req, res) => { /* ... copy from index.js ... */ });
+router.post('/campaigns', [auth, adminAuth], async (req, res) => { /* ... copy from index.js ... */ });
+
+
+// --- START SERVER ---
+app.use('/api', router);
+app.listen(PORT, () => console.log(`Local backend server running on port ${PORT}`));
+
+// =========================================================================================
+// Below are the full controller functions, copied for convenience
+// =========================================================================================
+
+async function connectDB_full() {
   try {
+    if (mongoose.connections[0].readyState) return;
     await mongoose.connect(process.env.MONGODB_URI);
     console.log('MongoDB Connected for local development.');
   } catch (err) {
@@ -27,26 +62,8 @@ const connectDB = async () => {
     process.exit(1);
   }
 };
-connectDB();
+connectDB_full();
 
-// --- MONGOOSE SCHEMA (MODELS) ---
-const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, trim: true },
-    fullName: { type: String, required: true },
-    email: { type: String, required: true, unique:true },
-    password: { type: String, required: true },
-    countryCode: { type: String },
-    phone: { type: String },
-    avatar: { type: String, default: 'https://i.pravatar.cc/150' },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
-}, { timestamps: true });
-
-const User = mongoose.model('User', UserSchema);
-
-// --- API ROUTES ---
-const router = express.Router();
-
-// SignUp Route
 router.post('/users/signup', async (req, res) => {
     const { username, fullName, email, password, countryCode, phone } = req.body;
     try {
@@ -73,7 +90,6 @@ router.post('/users/signup', async (req, res) => {
     }
 });
 
-// SignIn Route
 router.post('/users/signin', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -94,7 +110,26 @@ router.post('/users/signin', async (req, res) => {
     }
 });
 
+router.get('/campaigns', auth, async (req, res) => {
+    try {
+        const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
+        res.json(campaigns);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});
 
-// --- ATTACH ROUTER AND START SERVER ---
-app.use('/api', router);
-app.listen(PORT, () => console.log(`Local backend server running on port ${PORT}`));
+router.post('/campaigns', [auth, adminAuth], async (req, res) => {
+    const { name, photo, budget, rules, assets, platforms, rewardPer1kViews, maxPayout, minPayout, category, status } = req.body;
+    try {
+        const newCampaign = new Campaign({
+            name, photo, budget, rules, assets, platforms, rewardPer1kViews, maxPayout, minPayout, category, status
+        });
+        const campaign = await newCampaign.save();
+        res.status(201).json(campaign);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send('Server Error');
+    }
+});

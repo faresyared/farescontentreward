@@ -1,7 +1,8 @@
 // src/App.tsx
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
+import setAuthToken from './utils/setAuthToken';
 
 // Import Pages
 import SignIn from './pages/SignIn';
@@ -12,6 +13,11 @@ import Campaigns from './pages/Campaigns';
 import Earnings from './pages/Earnings';
 import Profile from './pages/Profile';
 
+// This checks for the token every time the app loads
+if (localStorage.token) {
+  setAuthToken(localStorage.token);
+}
+
 function App() {
   return (
     <Routes>
@@ -21,7 +27,6 @@ function App() {
 
       {/* Dashboard Nested Routes */}
       <Route path="/dashboard" element={<Dashboard />}>
-        {/* The "index" route is the default page for the parent route */}
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<Home />} />
         <Route path="campaigns" element={<Campaigns />} />
