@@ -1,13 +1,9 @@
 [build]
-  # This command does three things in the correct order:
-  # 1. Reads the root package.json and installs Express, Mongoose, serverless-http, etc.
-  # 2. Reads the frontend/package.json and installs React, Vite, etc.
-  # 3. Builds the frontend application.
   command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   publish = "frontend/dist"
-  functions = "backend/functions/"
+  functions = "backend/functions/" # This path is still correct
 
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/index/:splat"
+  to = "/.netlify/functions/index/:splat" # This path is also still correct
   status = 200
