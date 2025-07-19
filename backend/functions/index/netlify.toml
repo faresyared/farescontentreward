@@ -1,4 +1,0 @@
-# This file configures the 'index' function
-[functions."index"]
-  # Set the timeout to 25 seconds (the max for the free tier is 26)
-  timeout = 25
