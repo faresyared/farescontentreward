@@ -1,5 +1,5 @@
 [build]
-  command = "npm --prefix frontend run build"
+  command = "cd frontend && npm install && npx vite build"
   publish = "frontend/dist"
   functions = "backend/"
 
