@@ -3,6 +3,9 @@
   publish = "frontend/dist"
   functions = "backend/"
 
+[[plugins]]
+  package = "@netlify/plugin-functions-install-core"
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/index/:splat"
