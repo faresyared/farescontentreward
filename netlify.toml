@@ -1,7 +1,7 @@
 [build]
   command = "cd frontend && npm install && npx vite build"
   publish = "frontend/dist"
-  functions = "backend/"
+  functions = "backend/functions/" 
 
 [[plugins]]
   package = "@netlify/plugin-functions-install-core"
