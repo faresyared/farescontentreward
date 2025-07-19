@@ -3,17 +3,13 @@
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import SignIn from './pages/SignIn';
-// We will create the Dashboard page later
-// import Dashboard from './pages/Dashboard'; 
+import SignUp from './pages/SignUp'; // <-- Import the new page
 
 function App() {
   return (
     <Routes>
-      {/* The "/" path will now show our new SignIn page */}
-      <Route path="/" element={<SignIn />} /> 
-      
-      {/* We can add more routes here later, e.g.: */}
-      {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+      <Route path="/" element={<SignIn />} />
+      <Route path="/signup" element={<SignUp />} /> {/* <-- Add the new route */}
     </Routes>
   );
 }
