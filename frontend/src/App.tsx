@@ -1,15 +1,20 @@
+// src/App.tsx
+
 import React from 'react';
+import { Route, Routes } from 'react-router-dom';
+import SignIn from './pages/SignIn';
+// We will create the Dashboard page later
+// import Dashboard from './pages/Dashboard'; 
 
 function App() {
   return (
-    <div className="bg-black text-white min-h-screen flex flex-col items-center justify-center font-sans">
-      <h1 className="text-5xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500">
-        Welcome to Reelify
-      </h1>
-      <p className="text-neutral-400 mt-4 text-lg">
-        The foundation is set. Ready to build.
-      </p>
-    </div>
+    <Routes>
+      {/* The "/" path will now show our new SignIn page */}
+      <Route path="/" element={<SignIn />} /> 
+      
+      {/* We can add more routes here later, e.g.: */}
+      {/* <Route path="/dashboard" element={<Dashboard />} /> */}
+    </Routes>
   );
 }
 
