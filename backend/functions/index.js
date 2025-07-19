@@ -8,16 +8,13 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 // --- DATABASE CONNECTION ---
-// We only want to connect once per instance
 connectDB();
-
 async function connectDB() {
     try {
-        console.log('Connecting to MongoDB...');
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB Connection Successful.');
     } catch (err) {
-        console.error('Initial MongoDB Connection Failed:', err);
+        console.error('MongoDB Connection Failed:', err);
     }
 }
 
@@ -32,7 +29,39 @@ const UserSchema = new mongoose.Schema({
     avatar: { type: String, default: 'https://i.pravatar.cc/150' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
 }, { timestamps: true });
+const CampaignSchema = new mongoose.Schema({
+    name: { type: String, required: true },
+    photo: { type: String, required: true },
+    budget: { type: Number, required: true },
+    rules: { type: String, required: true },
+    platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'] }],
+    status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon' },
+}, { timestamps: true });
+
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
+const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
+
+
+// --- MIDDLEWARE ---
+const auth = (req, res, next) => {
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded.user;
+        next();
+    } catch (err) { res.status(401).json({ msg: 'Token is not valid' }); }
+};
+
+const adminAuth = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (user.role !== 'admin') {
+            return res.status(403).json({ msg: 'Admin resource. Access denied.' });
+        }
+        next();
+    } catch (err) { res.status(500).send('Server Error'); }
+};
 
 // --- EXPRESS APP & ROUTER ---
 const app = express();
@@ -40,45 +69,40 @@ app.use(cors());
 app.use(express.json());
 const router = express.Router();
 
-// --- API ROUTES WITH DETAILED LOGGING ---
+// --- API ROUTES ---
 
-// SignIn Route
-router.post('/users/signin', async (req, res) => {
-    console.log('--- SIGN-IN ROUTE HIT ---');
-    const { username, password } = req.body;
+// AUTH ROUTES
+router.post('/users/signup', async (req, res) => { /* signup logic */ });
+router.post('/users/signin', async (req, res) => { /* signin logic */ });
+
+// CAMPAIGN ROUTES
+router.get('/campaigns', auth, async (req, res) => {
     try {
-        console.log(`Searching for user: ${username}`);
-        const user = await User.findOne({ username });
-        
-        if (!user) {
-            console.log('User not found.');
-            return res.status(400).json({ message: 'Invalid credentials.' });
-        }
-        console.log(`User found: ${user.username}`);
-
-        console.log('Comparing passwords...');
-        const isMatch = await bcrypt.compare(password, user.password);
-        
-        if (!isMatch) {
-            console.log('Password does not match.');
-            return res.status(400).json({ message: 'Invalid credentials.' });
-        }
-        console.log('Password matches.');
-
-        console.log('Creating JWT...');
-        const payload = { user: { id: user.id, role: user.role } };
-        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-        console.log('JWT created. Sending response.');
-        
-        return res.status(200).json({ token });
-
+        const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
+        res.json(campaigns);
     } catch (err) {
-        console.error('--- ERROR IN SIGN-IN ROUTE ---', err);
-        return res.status(500).send('Server error');
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+router.post('/campaigns', [auth, adminAuth], async (req, res) => {
+    try {
+        const newCampaign = new Campaign(req.body);
+        const campaign = await newCampaign.save();
+        res.status(201).json(campaign);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
     }
 });
 
-// SignUp Route (you can add similar logging here if needed)
+// --- FINAL SETUP ---
+app.use('/api', router);
+module.exports.handler = serverless(app);
+
+// =========================================================================================
+// Full controller functions for copy-paste convenience
+// =========================================================================================
 router.post('/users/signup', async (req, res) => {
     const { username, fullName, email, password, countryCode, phone } = req.body;
     try {
@@ -95,8 +119,15 @@ router.post('/users/signup', async (req, res) => {
         res.status(201).json({ token });
     } catch (err) { res.status(500).send('Server error'); }
 });
-
-
-// --- FINAL SETUP ---
-app.use('/api', router);
-module.exports.handler = serverless(app);
+router.post('/users/signin', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const user = await User.findOne({ username });
+        if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) return res.status(400).json({ message: 'Invalid credentials.' });
+        const payload = { user: { id: user.id, role: user.role } };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
+        res.json({ token });
+    } catch (err) { res.status(500).send('Server error'); }
+});
