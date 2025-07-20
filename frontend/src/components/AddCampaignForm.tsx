@@ -1,4 +1,4 @@
-// src/components/AddCampaignForm.tsx
+// frontend/src/components/AddCampaignForm.tsx
 
 import React, { useState } from 'react';
 import axios from 'axios';
@@ -51,13 +51,14 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
     if (!file) return;
 
     setIsUploading(true);
+    setError(''); // Clear previous errors on new upload
     const uploadData = new FormData();
     uploadData.append('file', file);
-    uploadData.append('upload_preset', 'reelify_preset'); // Create an "unsigned" preset in Cloudinary settings
+    uploadData.append('upload_preset', 'reelify_preset');
     
     try {
         const res = await axios.post(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, uploadData);
-        setFormData({ ...formData, photo: res.data.secure_url });
+        setFormData(prevData => ({ ...prevData, photo: res.data.secure_url }));
     } catch (err) {
         setError('Image upload failed. Please try again.');
     } finally {
@@ -68,6 +69,13 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
+
+    // THIS IS THE FIX. We check for the photo URL before submitting.
+    if (!formData.photo) {
+      setError('A campaign photo is required. Please upload an image.');
+      return;
+    }
+
     try {
       let res;
       if (campaignToEdit) {
@@ -83,7 +91,6 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-      {/* Name and Type */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Campaign Name</label>
@@ -96,16 +103,12 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
           </select>
         </div>
       </div>
-
-      {/* Photo Upload */}
       <div>
         <label className="block text-sm font-medium text-gray-300">Campaign Photo</label>
         <input type="file" accept="image/*" onChange={handleImageUpload} className="mt-1 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-500/20 file:text-red-300 hover:file:bg-red-500/30"/>
-        {isUploading && <p className="text-blue-400">Uploading...</p>}
+        {isUploading && <p className="text-blue-400 text-sm mt-1">Uploading image...</p>}
         {formData.photo && !isUploading && <img src={formData.photo} alt="Preview" className="mt-2 h-32 w-auto rounded-lg"/>}
       </div>
-      
-      {/* Rest of the form fields */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Category</label>
@@ -120,7 +123,6 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
           </select>
         </div>
       </div>
-
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Budget ($)</label>
@@ -141,7 +143,6 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
           <input type="number" name="maxPayout" value={formData.maxPayout} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
         </div>
       </div>
-
       <div>
         <label className="block text-sm font-medium text-gray-300">Platforms</label>
         <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
@@ -161,8 +162,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
         <label className="block text-sm font-medium text-gray-300">Assets URL</label>
         <input type="text" name="assets" value={formData.assets} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
       </div>
-
-      {error && <p className="text-red-400 text-sm text-center">{error}</p>}
+      {error && <p className="text-red-400 text-sm text-center py-2">{error}</p>}
       <div className="flex justify-end pt-4 gap-3">
         <button type="button" onClick={onClose} className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
         <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isUploading}>
