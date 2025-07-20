@@ -15,7 +15,7 @@ import { HandThumbUpIcon, FaceSmileIcon, PencilIcon, TrashIcon } from '@heroicon
 import { HandThumbUpIcon as HandThumbUpIconOutline, FaceSmileIcon as FaceSmileIconOutline } from '@heroicons/react/24/outline';
 import { Popover, Transition } from '@headlessui/react';
 
-const EMOJIS = ['👍', '🔥', '😂', '😯', '😢'];
+const EMOJIS = ['👍', '😂', '😯', '😢'];
 
 interface PostDetailsModalProps {
   post: Post | null;
