@@ -5,14 +5,16 @@ import Modal from './Modal';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 
-// The full Campaign type definition
 export interface FullCampaign {
   _id: string;
   name: string;
   photo: string;
   budget: number;
   rules: string;
-  assets?: string;
+  assets?: {
+    name?: string;
+    url?: string;
+  };
   platforms: ('YouTube' | 'X' | 'Instagram' | 'TikTok')[];
   rewardPer1kViews?: number;
   type: 'UGC' | 'Clipping' | 'Faceless UGC';
@@ -22,7 +24,6 @@ export interface FullCampaign {
   status: 'Active' | 'Ended' | 'Soon' | 'Paused';
 }
 
-// Styles for the status badge
 const statusStyles = {
   Active: 'bg-green-500/20 text-green-400 border-green-500/30',
   Ended: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -48,13 +49,11 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
     <Modal isOpen={isOpen} onClose={onClose} title={campaign.name}>
       <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 text-gray-300">
         <img src={campaign.photo} alt={campaign.name} className="w-full h-64 object-cover rounded-lg" />
-        
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2">Campaign Details</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
           <DetailItem label="Budget" value={`$${campaign.budget}`} />
           <DetailItem label="Category" value={campaign.category} />
           <DetailItem label="Type" value={campaign.type} />
-          {/* --- THIS IS THE NEW STATUS BADGE DETAIL --- */}
           <div>
             <p className="text-sm text-gray-400">Status</p>
             <span className={`px-3 py-1 text-sm font-semibold rounded-full border ${statusStyles[campaign.status]}`}>
@@ -65,7 +64,6 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
           <DetailItem label="Min Payout" value={campaign.minPayout ? `$${campaign.minPayout}` : 'N/A'} />
           <DetailItem label="Max Payout" value={campaign.maxPayout ? `$${campaign.maxPayout}` : 'N/A'} />
         </div>
-        
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Platforms</h3>
         <div className="flex items-center space-x-4">
             {campaign.platforms.map(p => (
@@ -74,14 +72,19 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
                 </div>
             ))}
         </div>
-
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Rules</h3>
         <p className="whitespace-pre-wrap">{campaign.rules}</p>
-        
-        {campaign.assets && (
+        {campaign.assets && campaign.assets.url && (
             <>
                 <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Assets</h3>
-                <a href={campaign.assets} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline">Download Assets</a>
+                <a
+                    href={campaign.assets.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-400 hover:underline font-semibold"
+                >
+                    {campaign.assets.name || 'Download Assets'}
+                </a>
             </>
         )}
       </div>

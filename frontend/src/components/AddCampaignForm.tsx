@@ -4,12 +4,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FullCampaign } from './CampaignDetailsModal';
 
-const initialState = {
-  name: '', photo: '', budget: 0, rules: '', assets: '',
-  platforms: [], rewardPer1kViews: 0, type: 'UGC',
-  maxPayout: 0, minPayout: 0, category: 'Entertainment', status: 'Soon',
-};
-
 const cloudinaryAxios = axios.create();
 
 interface AddCampaignFormProps {
@@ -18,21 +12,26 @@ interface AddCampaignFormProps {
   campaignToEdit?: FullCampaign | null;
 }
 
+const initialState = {
+  name: '', photo: '', budget: 0, rules: '',
+  assets: { name: '', url: '' },
+  platforms: [], rewardPer1kViews: 0, type: 'UGC',
+  maxPayout: 0, minPayout: 0, category: 'Entertainment', status: 'Soon',
+};
+
 const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, campaignToEdit }) => {
   const [formData, setFormData] = useState(initialState);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    console.log("FORM STATE RESETTING. campaignToEdit is:", campaignToEdit ? campaignToEdit.name : 'null');
     if (campaignToEdit) {
       setFormData({
         name: campaignToEdit.name,
         photo: campaignToEdit.photo,
         budget: campaignToEdit.budget,
         rules: campaignToEdit.rules,
-        assets: campaignToEdit.assets || '',
+        assets: campaignToEdit.assets || { name: '', url: '' },
         platforms: campaignToEdit.platforms,
         rewardPer1kViews: campaignToEdit.rewardPer1kViews || 0,
         type: campaignToEdit.type,
@@ -52,31 +51,39 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
     const isNumber = type === 'number';
     setFormData(prevData => ({ ...prevData, [name]: isNumber ? Number(value) : value }));
   };
+
+  const handleAssetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData(prevData => ({
+        ...prevData,
+        assets: { ...prevData.assets, [name]: value }
+    }));
+  };
   
   const handlePlatformChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
     let updatedPlatforms = [...formData.platforms];
-    if (checked) { updatedPlatforms.push(value as any); } 
-    else { updatedPlatforms = updatedPlatforms.filter(p => p !== value); }
+    if (checked) {
+      updatedPlatforms.push(value as any);
+    } else {
+      updatedPlatforms = updatedPlatforms.filter(p => p !== value);
+    }
     setFormData(prevData => ({ ...prevData, platforms: updatedPlatforms }));
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
     setIsUploading(true);
     setError('');
     const uploadData = new FormData();
     uploadData.append('file', file);
     uploadData.append('upload_preset', 'reelify_preset');
-    
     try {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
         const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, uploadData);
         setFormData(prevData => ({ ...prevData, photo: res.data.secure_url }));
     } catch (err: any) {
-        console.error("Cloudinary Upload Error:", err.response?.data);
         setError('Image upload failed. Please try again.');
     } finally {
         setIsUploading(false);
@@ -85,18 +92,11 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (isSubmitting) return;
     setError('');
-    setIsSubmitting(true);
-
     if (!formData.photo) {
-      setError('A campaign photo is required. Please upload an image.');
-      setIsSubmitting(false);
+      setError('A campaign photo is required.');
       return;
     }
-
-    console.log("--- FRONTEND: SUBMITTING CAMPAIGN DATA ---", formData);
-
     try {
       let res;
       if (campaignToEdit) {
@@ -107,8 +107,6 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
       onSuccess(res.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save campaign.');
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -129,7 +127,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
       <div>
         <label className="block text-sm font-medium text-gray-300">Campaign Photo</label>
         <input type="file" accept="image/*" onChange={handleImageUpload} className="mt-1 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-500/20 file:text-red-300 hover:file:bg-red-500/30"/>
-        {isUploading && <p className="text-blue-400 text-sm mt-1">Uploading image...</p>}
+        {isUploading && <p className="text-blue-400 text-sm mt-1">Uploading...</p>}
         {formData.photo && !isUploading && <img src={formData.photo} alt="Preview" className="mt-2 h-32 w-auto rounded-lg"/>}
       </div>
       <div className="grid grid-cols-2 gap-4">
@@ -182,14 +180,17 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
         <textarea name="rules" value={formData.rules} onChange={onChange} required rows={3} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
       </div>
       <div>
-        <label className="block text-sm font-medium text-gray-300">Assets URL</label>
-        <input type="text" name="assets" value={formData.assets} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        <label className="block text-sm font-medium text-gray-300">Assets</label>
+        <div className="mt-1 grid grid-cols-2 gap-2">
+            <input type="text" name="name" placeholder="Link Name (e.g., Download Brief)" value={formData.assets.name} onChange={handleAssetChange} className="w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500" />
+            <input type="url" name="url" placeholder="https://example.com/asset-url" value={formData.assets.url} onChange={handleAssetChange} className="w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500" />
+        </div>
       </div>
       {error && <p className="text-red-400 text-sm text-center py-2">{error}</p>}
       <div className="flex justify-end pt-4 gap-3">
         <button type="button" onClick={onClose} className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed" disabled={isUploading || isSubmitting}>
-          {isSubmitting ? 'Saving...' : (isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign'))}
+        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isUploading}>
+          {isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign')}
         </button>
       </div>
     </form>

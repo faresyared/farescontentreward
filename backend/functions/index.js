@@ -10,11 +10,16 @@ const cors = require('cors');
 // --- DATABASE CONNECTION ---
 let isConnected;
 async function connectDB() {
-    if (isConnected) { return; }
+    if (isConnected) {
+        return;
+    }
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         isConnected = true;
-    } catch (err) { console.error('MongoDB Connection Failed:', err); }
+        console.log('MongoDB Connection Successful.');
+    } catch (err) {
+        console.error('MongoDB Connection Failed:', err);
+    }
 }
 
 // --- MONGOOSE SCHEMAS (MODELS) ---
@@ -32,7 +37,10 @@ const CampaignSchema = new mongoose.Schema({
     photo: { type: String, required: true },
     budget: { type: Number, required: true },
     rules: { type: String, required: true },
-    assets: { type: String },
+    assets: {
+        name: { type: String },
+        url: { type: String }
+    },
     platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'], required: true }],
     rewardPer1kViews: { type: Number },
     type: { type: String, enum: ['UGC', 'Clipping', 'Faceless UGC'], required: true },
