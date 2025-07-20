@@ -9,18 +9,19 @@ import { Popover, Transition } from '@headlessui/react';
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-black font-sans text-gray-300">
-      {/* Animated Background Blobs */}
+      {/* Animated Background Blobs stay in the back */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      {/* Main Layout Container */}
-      <div className="relative z-10 flex flex-col h-screen">
+      {/* --- THIS IS THE KEY CHANGE --- */}
+      {/* We wrap the main layout in a `relative z-20` container. */}
+      {/* This ensures it sits "below" our corner buttons which will have a higher z-index. */}
+      <div className="relative z-20 flex flex-col h-screen">
         <Navbar />
         
         <div className="flex flex-grow overflow-hidden">
-          {/* --- THIS IS THE FIX --- */}
-          {/* Left Sidebar: Saved Campaigns (Visible on large screens) */}
+          {/* Left Sidebar: Saved Campaigns */}
           <aside className="hidden lg:block w-64 flex-shrink-0 bg-gray-900/30 border-r border-gray-800/50 p-4">
             <div className="flex items-center gap-2 text-gray-400 mb-4">
                 <BookmarkIcon className="h-6 w-6 text-red-500" />
@@ -41,11 +42,11 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- THIS IS THE FIX --- */}
-      {/* Corner Buttons */}
-
-      {/* Top Right: Livestreams (Visible on ALL screens) */}
-      <div className="fixed top-20 right-5 z-30">
+      {/* --- THIS IS THE KEY CHANGE --- */}
+      {/* Corner Buttons now have a higher z-index (z-50) than the main content (z-20) */}
+      
+      {/* Top Right: Livestreams */}
+      <div className="fixed top-20 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
               <SignalIcon className="h-6 w-6" />
@@ -61,7 +62,7 @@ const Dashboard = () => {
         </Popover>
       </div>
 
-      {/* Bottom Right: Chats (Visible on ALL screens) */}
+      {/* Bottom Right: Chats */}
        <div className="fixed bottom-5 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
