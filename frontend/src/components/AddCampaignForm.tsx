@@ -4,6 +4,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FullCampaign } from './CampaignDetailsModal';
 
+// This is the fix for the CORS error.
+// We create a new, "clean" Axios instance just for Cloudinary.
+const cloudinaryAxios = axios.create();
+
 interface AddCampaignFormProps {
   onSuccess: (campaign: FullCampaign) => void;
   onClose: () => void;
@@ -24,18 +28,11 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   useEffect(() => {
     if (campaignToEdit) {
       setFormData({
-        name: campaignToEdit.name,
-        photo: campaignToEdit.photo,
-        budget: campaignToEdit.budget,
-        rules: campaignToEdit.rules,
-        assets: campaignToEdit.assets || '',
-        platforms: campaignToEdit.platforms,
-        rewardPer1kViews: campaignToEdit.rewardPer1kViews || 0,
-        type: campaignToEdit.type,
-        maxPayout: campaignToEdit.maxPayout || 0,
-        minPayout: campaignToEdit.minPayout || 0,
-        category: campaignToEdit.category,
-        status: campaignToEdit.status,
+        name: campaignToEdit.name, photo: campaignToEdit.photo, budget: campaignToEdit.budget,
+        rules: campaignToEdit.rules, assets: campaignToEdit.assets || '', platforms: campaignToEdit.platforms,
+        rewardPer1kViews: campaignToEdit.rewardPer1kViews || 0, type: campaignToEdit.type,
+        maxPayout: campaignToEdit.maxPayout || 0, minPayout: campaignToEdit.minPayout || 0,
+        category: campaignToEdit.category, status: campaignToEdit.status,
       });
     } else {
       setFormData(initialState);
@@ -69,8 +66,13 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
     
     try {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-        const cloudinaryAxios = axios.create(); // Create a clean instance
-        const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${dqbgu5rwq}/image/upload`, uploadData);
+        if (!cloudName) {
+            setError("Cloudinary configuration is missing. Please contact support.");
+            setIsUploading(false);
+            return;
+        }
+        // We use our "clean" axios instance here
+        const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, uploadData);
         setFormData(prevData => ({ ...prevData, photo: res.data.secure_url }));
     } catch (err: any) {
         console.error("Cloudinary Upload Error:", err.response?.data);
@@ -83,8 +85,14 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    if (!formData.photo) { setError('A campaign photo is required. Please upload an image.'); return; }
+
+    if (!formData.photo) {
+      setError('A campaign photo is required. Please upload an image.');
+      return;
+    }
+
     try {
+      // The default axios (with the token) is used here automatically
       let res;
       if (campaignToEdit) {
         res = await axios.put(`/api/campaigns/${campaignToEdit._id}`, formData);
@@ -99,6 +107,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
+      {/* ... The full JSX for the form ... */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Campaign Name</label>
