@@ -8,9 +8,11 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 // --- DATABASE CONNECTION ---
+// We only want to connect once per instance
 connectDB();
 async function connectDB() {
     try {
+        if (mongoose.connections[0].readyState) return;
         await mongoose.connect(process.env.MONGODB_URI);
         console.log('MongoDB Connection Successful.');
     } catch (err) {
@@ -19,11 +21,16 @@ async function connectDB() {
 }
 
 // --- MONGOOSE SCHEMAS (MODELS) ---
-const UserSchema = new mongoose.Schema({ /* ... user schema ... */ }, { timestamps: true });
+const UserSchema = new mongoose.Schema({
+    username: { type: String, required: true, unique: true, trim: true },
+    fullName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true },
+    role: { type: String, enum: ['user', 'admin'], default: 'user' },
+}, { timestamps: true });
 
 const CampaignSchema = new mongoose.Schema({
-    // The field is correctly named 'name'
-    name: { type: String, required: true, unique: true }, 
+    name: { type: String, required: true, unique: true },
     photo: { type: String, required: true },
     budget: { type: Number, required: true },
     rules: { type: String, required: true },
@@ -34,59 +41,9 @@ const CampaignSchema = new mongoose.Schema({
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
 
-
 // --- MIDDLEWARE ---
-// ... (auth and adminAuth middleware are the same) ...
-
-
-// --- EXPRESS APP & ROUTER ---
-const app = express();
-app.use(cors());
-app.use(express.json());
-const router = express.Router();
-
-
-// --- API ROUTES ---
-// ... (User routes are the same) ...
-
-router.post('/campaigns', [auth, adminAuth], async (req, res) => {
-    try {
-        // We create the new campaign from the request body, which has the 'name' field
-        const newCampaign = new Campaign(req.body);
-        const campaign = await newCampaign.save();
-        res.status(201).json(campaign);
-    } catch (err) {
-        // If a unique name is violated, this will now give a proper error
-        if (err.code === 11000) {
-            return res.status(400).json({ message: 'A campaign with this name already exists.' });
-        }
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-// ... (GET campaigns route is the same) ...
-
-
-// --- FINAL SETUP ---
-app.use('/api', router);
-module.exports.handler = serverless(app);
-
-// =========================================================================================
-// Full code for convenience
-// =========================================================================================
-const FullUserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, trim: true },
-    fullName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    countryCode: { type: String },
-    phone: { type: String },
-    avatar: { type: String, default: 'https://i.pravatar.cc/150' },
-    role: { type: String, enum: ['user', 'admin'], default: 'user' },
-}, { timestamps: true });
-mongoose.models.User || mongoose.model('User', FullUserSchema);
-
-const authMiddleware = (req, res, next) => {
+// THIS IS THE FIX. 'auth' and 'adminAuth' are now correctly defined before they are used.
+const auth = (req, res, next) => {
     const token = req.header('x-auth-token');
     if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
     try {
@@ -95,38 +52,48 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (err) { res.status(401).json({ msg: 'Token is not valid' }); }
 };
-const adminAuthMiddleware = async (req, res, next) => {
+
+const adminAuth = async (req, res, next) => {
     try {
-        const user = await User.findById(req.user.id);
-        if (user.role !== 'admin') return res.status(403).json({ msg: 'Admin resource. Access denied.' });
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        if (user.role !== 'admin') {
+            return res.status(403).json({ msg: 'Admin resource. Access denied.' });
+        }
         next();
-    } catch (err) { res.status(500).send('Server Error'); }
+    } catch (err) { 
+        console.error('Admin auth error:', err);
+        res.status(500).send('Server Error');
+    }
 };
 
-router.post('/users/signup', async (req, res) => { /* ... signup logic ... */ });
-router.post('/users/signin', async (req, res) => { /* ... signin logic ... */ });
-router.get('/campaigns', authMiddleware, async (req, res) => {
-    try {
-        const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
-        res.json(campaigns);
-    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
-});
-// The full user routes
+// --- EXPRESS APP & ROUTER ---
+const app = express();
+app.use(cors());
+app.use(express.json());
+const router = express.Router();
+
+// --- API ROUTES ---
+
+// AUTH ROUTES
 router.post('/users/signup', async (req, res) => {
-    const { username, fullName, email, password, countryCode, phone } = req.body;
+    const { username, fullName, email, password } = req.body;
     try {
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ message: 'User with this email already exists.' });
         user = await User.findOne({ username });
         if (user) return res.status(400).json({ message: 'This username is already taken.' });
-        user = new User({ username, fullName, email, password, countryCode, phone });
+        user = new User({ username, fullName, email, password });
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();
         const payload = { user: { id: user.id, role: user.role } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.status(201).json({ token });
-    } catch (err) { res.status(500).send('Server error'); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).send('Server error'); 
+    }
 });
 router.post('/users/signin', async (req, res) => {
     const { username, password } = req.body;
@@ -138,5 +105,42 @@ router.post('/users/signin', async (req, res) => {
         const payload = { user: { id: user.id, role: user.role } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.json({ token });
-    } catch (err) { res.status(500).send('Server error'); }
+    } catch (err) { 
+        console.error(err);
+        res.status(500).send('Server error'); 
+    }
 });
+
+// CAMPAIGN ROUTES
+router.get('/campaigns', auth, async (req, res) => {
+    try {
+        const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
+        res.json(campaigns);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+router.post('/campaigns', [auth, adminAuth], async (req, res) => {
+    try {
+        const newCampaign = new Campaign(req.body);
+        const campaign = await newCampaign.save();
+        res.status(201).json(campaign);
+    } catch (err) {
+        if (err.code === 11000) {
+            return res.status(400).json({ message: 'A campaign with this name already exists.' });
+        }
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// --- FINAL SETUP ---
+app.use('/api', router);
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+    // This ensures the DB connection is ready before any request is handled
+    await connectDB();
+    return await handler(event, context);
+};
