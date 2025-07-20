@@ -1,5 +1,3 @@
-// frontend/src/components/AddCampaignForm.tsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FullCampaign } from './CampaignDetailsModal';
@@ -68,7 +66,14 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
     try {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-        const cloudinaryAxios = axios.create();
+
+        // Create a clean axios instance without the x-auth-token header
+        const cloudinaryAxios = axios.create({
+            headers: {
+                // No x-auth-token here
+            }
+        });
+
         const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, uploadData);
         setFormData(prevData => ({ ...prevData, photo: res.data.secure_url }));
     } catch (err: any) {
@@ -149,7 +154,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
           <input type="number" name="rewardPer1kViews" value={formData.rewardPer1kViews} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
         </div>
       </div>
-       <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Min Payout ($)</label>
           <input type="number" name="minPayout" value={formData.minPayout} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
