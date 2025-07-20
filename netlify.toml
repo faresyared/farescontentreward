@@ -1,17 +1,13 @@
-# This section tells Netlify's LIVE server how to build the site.
 [build]
   command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   publish = "frontend/dist"
   functions = "backend/functions/"
 
-# This NEW section tells 'netlify dev' how to run your site LOCALLY.
-[dev]
-  # Command to start the frontend dev server
-  command = "npm run dev --prefix frontend" 
-  # The port that the frontend dev server will run on
-  targetPort = 5173 
-
+# This is the new rule. It's the most important one for React apps.
 [[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/index/:splat"
-  status = 200
+  # The path to redirect from
+  from = "/*" 
+  # The path to redirect to
+  to = "/index.html"
+  # The HTTP status code
+  status = 200 
