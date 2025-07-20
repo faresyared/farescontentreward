@@ -17,7 +17,6 @@ const Home = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  // State for the two modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
@@ -40,6 +39,11 @@ const Home = () => {
   const handleAddPostSuccess = (newPost: Post) => {
     setPosts([newPost, ...posts]);
     setIsCreateModalOpen(false);
+  };
+
+  const handlePostUpdate = (updatedPost: Post) => {
+    setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
+    setSelectedPost(updatedPost);
   };
 
   const openPostDetails = (post: Post) => {
@@ -66,7 +70,6 @@ const Home = () => {
 
   return (
     <>
-      {/* The modal for creating new posts */}
       <Modal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} title="Create a New Post">
         <AddPostForm 
           onSuccess={handleAddPostSuccess} 
@@ -74,11 +77,11 @@ const Home = () => {
         />
       </Modal>
 
-      {/* The modal for viewing post details */}
       <PostDetailsModal 
         post={selectedPost} 
         isOpen={isDetailsModalOpen} 
         onClose={() => setIsDetailsModalOpen(false)} 
+        onPostUpdate={handlePostUpdate}
       />
       
       <div className="max-w-3xl mx-auto">
