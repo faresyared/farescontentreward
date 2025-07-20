@@ -8,15 +8,17 @@ import { Popover, Transition } from '@headlessui/react';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-black font-sans text-gray-300">
-      {/* Animated Background Blobs stay in the back */}
+    // --- THIS IS THE KEY CHANGE ---
+    // We add `overflow-hidden` to the main container to "clip" the animated blobs
+    // and prevent them from affecting the page's scroll. This makes the page stable.
+    <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
+      
+      {/* Animated Background Blobs will now be contained */}
       <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
       <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      {/* --- THIS IS THE KEY CHANGE --- */}
-      {/* We wrap the main layout in a `relative z-20` container. */}
-      {/* This ensures it sits "below" our corner buttons which will have a higher z-index. */}
+      {/* Main Layout Container */}
       <div className="relative z-20 flex flex-col h-screen">
         <Navbar />
         
@@ -42,10 +44,7 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* --- THIS IS THE KEY CHANGE --- */}
-      {/* Corner Buttons now have a higher z-index (z-50) than the main content (z-20) */}
-      
-      {/* Top Right: Livestreams */}
+      {/* Corner Buttons */}
       <div className="fixed top-20 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
@@ -62,8 +61,7 @@ const Dashboard = () => {
         </Popover>
       </div>
 
-      {/* Bottom Right: Chats */}
-       <div className="fixed bottom-5 right-5 z-50">
+      <div className="fixed bottom-5 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
               <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
