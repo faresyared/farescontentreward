@@ -150,7 +150,8 @@ router.get('/campaigns', auth, async (req, res) => {
             query.name = { $regex: search, $options: 'i' };
         }
         if (platform && platform !== 'All Platforms') {
-            query.platform = platform;
+            query.platforms = { $in: [platform] };
+
         }
         if (type && type !== 'All Types') {
             query.type = type;
