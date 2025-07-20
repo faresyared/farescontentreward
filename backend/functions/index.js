@@ -141,10 +141,25 @@ router.post('/users/signin', async (req, res) => {
 // CAMPAIGN ROUTES
 router.get('/campaigns', auth, async (req, res) => {
     try {
-        const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
+        const { search, platform, type } = req.query;
+        
+        // Build a dynamic query object
+        const query = {};
+        if (search) {
+            // Use a case-insensitive regex for searching the campaign name
+            query.name = { $regex: search, $options: 'i' };
+        }
+        if (platform && platform !== 'All Platforms') {
+            query.platform = platform;
+        }
+        if (type && type !== 'All Types') {
+            query.type = type;
+        }
+
+        const campaigns = await Campaign.find(query).sort({ status: 1, createdAt: -1 });
         res.json(campaigns);
     } catch (err) {
-        console.error(err);
+        console.error("Error fetching campaigns:", err);
         res.status(500).send('Server Error');
     }
 });
