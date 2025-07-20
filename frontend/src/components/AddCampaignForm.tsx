@@ -1,3 +1,5 @@
+// frontend/src/components/AddCampaignForm.tsx
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FullCampaign } from './CampaignDetailsModal';
@@ -42,14 +44,15 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
+    // @ts-ignore
     const isNumber = type === 'number';
     setFormData(prevData => ({ ...prevData, [name]: isNumber ? Number(value) : value }));
   };
-
+  
   const handlePlatformChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
     let updatedPlatforms = [...formData.platforms];
-    if (checked) { updatedPlatforms.push(value as any); }
+    if (checked) { updatedPlatforms.push(value as any); } 
     else { updatedPlatforms = updatedPlatforms.filter(p => p !== value); }
     setFormData(prevData => ({ ...prevData, platforms: updatedPlatforms }));
   };
@@ -62,23 +65,16 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
     setError('');
     const uploadData = new FormData();
     uploadData.append('file', file);
-    uploadData.append('upload_preset', 'reelify_preset');  // Ensure you use the correct upload preset here
-
+    uploadData.append('upload_preset', 'reelify_preset');
+    
     try {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
-
-        // Remove the x-auth-token header by creating a clean axios instance for Cloudinary upload
-        const cloudinaryAxios = axios.create({
-            headers: {
-                // Do not include any token or additional headers
-            }
-        });
-
-        const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, uploadData);
+        const cloudinaryAxios = axios.create(); // Create a clean instance
+        const res = await cloudinaryAxios.post(`https://api.cloudinary.com/v1_1/${dqbgu5rwq}/image/upload`, uploadData);
         setFormData(prevData => ({ ...prevData, photo: res.data.secure_url }));
     } catch (err: any) {
-        console.error("Cloudinary Upload Error:", err);
-        setError(err?.response?.data?.message || 'Image upload failed. Please try again.');
+        console.error("Cloudinary Upload Error:", err.response?.data);
+        setError('Image upload failed. Please try again.');
     } finally {
         setIsUploading(false);
     }
@@ -87,16 +83,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
-    
-    if (!formData.photo) {
-      setError('A campaign photo is required. Please upload an image.');
-      return;
-    }
-    if (!formData.name || !formData.budget || !formData.rewardPer1kViews) {
-      setError('All required fields must be filled.');
-      return;
-    }
-
+    if (!formData.photo) { setError('A campaign photo is required. Please upload an image.'); return; }
     try {
       let res;
       if (campaignToEdit) {
@@ -154,7 +141,7 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
           <input type="number" name="rewardPer1kViews" value={formData.rewardPer1kViews} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
         </div>
       </div>
-      <div className="grid grid-cols-2 gap-4">
+       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Min Payout ($)</label>
           <input type="number" name="minPayout" value={formData.minPayout} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
