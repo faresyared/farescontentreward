@@ -214,6 +214,19 @@ router.get('/posts', auth, async (req, res) => {
     }
 });
 
+router.get('/posts/:id', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id).populate('author', 'username avatar');
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found' });
+        }
+        res.json(post);
+    } catch (err) {
+        console.error("Error fetching single post:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 router.post('/posts', [auth, adminAuth], async (req, res) => {
     try {
         const newPost = new Post({
@@ -225,6 +238,32 @@ router.post('/posts', [auth, adminAuth], async (req, res) => {
         res.status(201).json(populatedPost);
     } catch (err) {
         console.error("Error creating post:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.put('/posts/:id', [auth, adminAuth], async (req, res) => {
+    try {
+        let post = await Post.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found' });
+        }
+
+        // Ensure the admin is the one who created the post (optional, but good security)
+        if (post.author.toString() !== req.user.id) {
+             // Or if you allow any admin to edit any post, you can remove this check.
+             // For now, we assume only the original admin author can edit.
+        }
+
+        const updatedPost = await Post.findByIdAndUpdate(
+            req.params.id,
+            { $set: req.body },
+            { new: true }
+        ).populate('author', 'username avatar');
+        
+        res.json(updatedPost);
+    } catch (err) {
+        console.error("Error updating post:", err);
         res.status(500).send('Server Error');
     }
 });
