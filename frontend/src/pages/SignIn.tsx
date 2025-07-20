@@ -30,6 +30,7 @@ const SignIn = () => {
 
     try {
       const res = await axios.post('/api/users/signin', formData);
+         localStorage.setItem('token', res.data.token);
       login(res.data.token);
       navigate('/dashboard');
     } catch (err: any) {
