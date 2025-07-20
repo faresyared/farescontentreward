@@ -3,7 +3,9 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
+import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
+import { Popover, Transition } from '@headlessui/react';
+import { Fragment } from 'react';
 
 const Dashboard = () => {
   return (
@@ -17,47 +19,28 @@ const Dashboard = () => {
       <div className="relative z-10 flex flex-col h-screen">
         <Navbar />
         
-        <div className="flex flex-grow overflow-hidden">
-          {/* Left Sidebar: Saved Campaigns */}
-          <aside className="hidden lg:block w-64 flex-shrink-0 bg-gray-900/30 border-r border-gray-800/50 p-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-4">
-                <BookmarkIcon className="h-6 w-6 text-red-500" />
-                <h2 className="text-lg font-bold">Saved Campaigns</h2>
-            </div>
-            <div className="text-center text-gray-500 mt-10">
-                <p>Your saved campaigns will appear here.</p>
-                <span className="text-xs font-semibold bg-blue-500/20 text-blue-300 py-1 px-2 rounded-full mt-2 inline-block">
-                    Coming Soon
-                </span>
-            </div>
-          </aside>
-
-          {/* Main Content Area */}
-          <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8">
-            <Outlet />
-          </main>
-        </div>
+        {/* Main Content Area */}
+        {/* We add padding to the bottom to prevent the mobile nav from covering content */}
+        <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+          <Outlet />
+        </main>
       </div>
 
-      {/* Corner Buttons */}
-      {/* Top Right: Livestreams */}
-      <div className="fixed top-20 right-5 z-50 group">
-         <button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 hover:shadow-lg hover:shadow-red-500/20 transition-all">
-            <SignalIcon className="h-6 w-6" />
-         </button>
-         <span className="absolute top-1/2 -right-2 -translate-y-1/2 w-max px-2 py-1 bg-gray-900 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 group-hover:-right-4 transition-all pointer-events-none">
-            Livestreams (Coming Soon)
-         </span>
-      </div>
-
-      {/* Bottom Right: Chats */}
-       <div className="fixed bottom-5 right-5 z-50 group">
-         <button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110">
-            <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
-         </button>
-         <span className="absolute top-1/2 -right-4 -translate-y-1/2 w-max px-2 py-1 bg-gray-900 text-xs rounded-md shadow-lg opacity-0 group-hover:opacity-100 group-hover:-right-6 transition-all pointer-events-none">
-            Chats (Coming Soon)
-         </span>
+      {/* --- NEW CHAT POPOVER BUTTON (Visible on all screen sizes) --- */}
+      <div className="fixed bottom-5 right-5 z-50">
+        <Popover className="relative">
+          <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
+              <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
+          </Popover.Button>
+          <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
+              <Popover.Panel className="absolute bottom-full right-0 mb-2 w-72 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
+                  <div className="text-center text-gray-400">
+                      <p className="font-bold">Live Chat</p>
+                      <p className="text-sm">This feature is coming soon.</p>
+                  </div>
+              </Popover.Panel>
+          </Transition>
+        </Popover>
       </div>
     </div>
   );
