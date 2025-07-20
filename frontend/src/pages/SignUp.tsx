@@ -3,15 +3,17 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const { login } = useAuth();
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
     email: '',
     password: '',
-    countryCode: '+966', // Default country code
+    countryCode: '+966',
     phone: '',
   });
   const [error, setError] = useState('');
@@ -36,18 +38,13 @@ const SignUp = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setError(''); // Clear previous errors
+    setError('');
 
     try {
-      // The request will be proxied by Vite to http://localhost:3001/api/users/signup
       const res = await axios.post('/api/users/signup', formData);
-      
-      // On success, backend sends back a token. We save it and redirect.
-      localStorage.setItem('token', res.data.token);
+      login(res.data.token);
       navigate('/dashboard');
-
     } catch (err: any) {
-      // If the backend sends an error message, display it
       if (err.response && err.response.data.message) {
         setError(err.response.data.message);
       } else {
@@ -61,11 +58,8 @@ const SignUp = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-red-900 opacity-70 blur-3xl"></div>
       <div className="relative w-full max-w-md bg-black/50 backdrop-blur-lg rounded-2xl border border-gray-700/50 shadow-2xl shadow-red-500/10">
         <div className="p-8">
-          <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500 mb-2">
-            Create Account
-          </h1>
+          <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500 mb-2">Create Account</h1>
           <p className="text-center text-gray-400 mb-6">Join the Reelify community</p>
-
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -77,50 +71,31 @@ const SignUp = () => {
                 <input type="text" id="fullName" value={fullName} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none" />
               </div>
             </div>
-
             <div>
               <label htmlFor="email" className="block text-sm font-medium text-gray-400">Email</label>
               <input type="email" id="email" value={email} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none" />
             </div>
-            
             <div>
                 <label htmlFor="phone" className="block text-sm font-medium text-gray-400">Country & Phone</label>
                 <div className="flex gap-2 mt-1">
                     <select id="countryCode" value={countryCode} onChange={onChange} className="bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-2 focus:ring-2 focus:ring-red-500 outline-none">
-                        {middleEastCountries.map(country => (
-                            <option key={country.code} value={country.code} className="bg-gray-900 text-white">
-                                {country.emoji} {country.code}
-                            </option>
-                        ))}
+                        {middleEastCountries.map(country => (<option key={country.code} value={country.code} className="bg-gray-900 text-white">{country.emoji} {country.code}</option>))}
                     </select>
                     <input type="tel" id="phone" value={phone} onChange={onChange} required className="block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none" placeholder="5X XXX XXXX" />
                 </div>
             </div>
-
             <div>
               <label htmlFor="password"className="block text-sm font-medium text-gray-400">Password</label>
               <input type="password" id="password" value={password} onChange={onChange} required minLength={6} className="mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none"/>
             </div>
-
-            {/* Error Message Display */}
-            {error && (
-              <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-sm rounded-lg p-3 text-center">
-                {error}
-              </div>
-            )}
-
+            {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-sm rounded-lg p-3 text-center">{error}</div>}
             <div className="pt-2">
-              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500/50 shadow-lg shadow-red-500/20">
-                Sign Up
-              </button>
+              <button type="submit" className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500/50 shadow-lg shadow-red-500/20">Sign Up</button>
             </div>
           </form>
-
           <p className="text-center text-sm text-gray-500 mt-6">
             Already have an account?{' '}
-            <Link to="/" className="font-medium text-red-500 hover:text-red-400">
-              Sign In
-            </Link>
+            <Link to="/" className="font-medium text-red-500 hover:text-red-400">Sign In</Link>
           </p>
         </div>
       </div>
