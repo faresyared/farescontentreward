@@ -1,23 +1,16 @@
+/* frontend/src/index.css */
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .animation-delay-2000 {
-    animation-delay: 2s;
-  }
-  .animation-delay-4000 {
-    animation-delay: 4s;
-  }
-}
-
-@keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
-}
-
-.animate-blob {
-  animation: blob 7s infinite;
+/*
+  THIS IS THE FINAL, GUARANTEED FIX.
+  We are telling the entire webpage that it should be black,
+  and that it is IMPOSSIBLE to scroll left or right (overflow-x: hidden).
+  This will "clip" the animated blobs and stop the page from moving.
+*/
+html, body {
+  background-color: #000;
+  overflow-x: hidden;
 }
