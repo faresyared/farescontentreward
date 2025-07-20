@@ -2,7 +2,7 @@
 
 import React, { Fragment } from 'react';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, UserCircleIcon, BookmarkIcon, SignalIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, BookmarkIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { Popover, Transition } from '@headlessui/react';
 
@@ -13,11 +13,6 @@ const Navbar = () => {
     name: user?.username || 'User',
     avatar: 'https://i.pravatar.cc/150?u=' + user?.id,
   };
-
-  const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
-    `flex flex-col items-center justify-center w-full px-2 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
-      isActive ? 'bg-red-500/10 text-red-400' : 'text-gray-400'
-    }`;
     
   const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) =>
     `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${
@@ -38,23 +33,25 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* --- NEW LIVESTREAMS POPOVER FOR DESKTOP --- */}
-            <div className="hidden md:block">
-                <Popover className="relative">
-                    <Popover.Button className="h-10 w-10 bg-gray-800/50 border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
-                        <SignalIcon className="h-5 w-5" />
-                    </Popover.Button>
-                    <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
-                        <Popover.Panel className="absolute right-0 mt-2 w-48 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-2">
-                            <div className="text-center text-gray-400">
-                                <p className="font-bold">Livestreams</p>
-                                <p className="text-sm">This feature is coming soon.</p>
-                            </div>
-                        </Popover.Panel>
-                    </Transition>
-                </Popover>
+            {/* --- THIS IS THE FIX --- */}
+            {/* The Saved Campaigns pop-up button, ONLY visible on mobile */}
+            <div className="md:hidden">
+              <Popover className="relative">
+                <Popover.Button className="h-10 w-10 bg-gray-800/50 border border-gray-700/50 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-500/20 transition-all outline-none">
+                  <BookmarkIcon className="h-5 w-5" />
+                </Popover.Button>
+                <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
+                  <Popover.Panel className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
+                    <div className="text-center text-gray-400">
+                      <p className="font-bold">Saved Campaigns</p>
+                      <p className="text-sm">This feature is coming soon.</p>
+                    </div>
+                  </Popover.Panel>
+                </Transition>
+              </Popover>
             </div>
 
+            {/* The profile button, which now works on ALL screen sizes */}
             <NavLink to="/dashboard/profile" className="flex items-center space-x-3 hover:bg-gray-800/50 p-2 rounded-lg transition-colors duration-300">
               <span className="text-white font-medium hidden sm:block">{placeholderUser.name}</span>
               <img className="h-10 w-10 rounded-full border-2 border-red-500/50" src={placeholderUser.avatar} alt="User avatar" />
@@ -63,29 +60,15 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* --- NEW MOBILE BOTTOM BAR --- */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-t border-gray-800/50 p-1">
-        <div className="flex justify-around items-center">
-          <NavLink to="/dashboard/home" className={mobileNavLinkClass}> <HomeIcon className="h-6 w-6" /> <span className="text-xs mt-1">Home</span> </NavLink>
-          <NavLink to="/dashboard/campaigns" className={mobileNavLinkClass}> <MegaphoneIcon className="h-6 w-6" /> <span className="text-xs mt-1">Campaigns</span> </NavLink>
-          <NavLink to="/dashboard/earnings" className={mobileNavLinkClass}> <CurrencyDollarIcon className="h-6 w-6" /> <span className="text-xs mt-1">Earnings</span> </NavLink>
-          
-          {/* --- NEW SAVED CAMPAIGNS POPOVER FOR MOBILE --- */}
-          <Popover className="relative w-full flex justify-center">
-            <Popover.Button className={mobileNavLinkClass({ isActive: false })}>
-              <BookmarkIcon className="h-6 w-6" /> <span className="text-xs mt-1">Saved</span>
-            </Popover.Button>
-            <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
-              <Popover.Panel className="absolute bottom-full mb-2 w-72 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
-                  <div className="text-center text-gray-400">
-                      <p className="font-bold">Saved Campaigns</p>
-                      <p className="text-sm">This feature is coming soon.</p>
-                  </div>
-              </Popover.Panel>
-            </Transition>
-          </Popover>
-        </div>
-      </div>
+      {/* --- THIS IS THE FIX --- */}
+      {/* The bottom mobile bar, now clean and simple */}
+       <div className="md:hidden p-2">
+            <div className="flex justify-around bg-gray-900/50 rounded-lg p-1 gap-1">
+                 <NavLink to="/dashboard/home" className="flex-1 text-center py-2 text-gray-400 rounded-lg data-[active]:bg-red-500/10 data-[active]:text-red-400">Home</NavLink>
+                 <NavLink to="/dashboard/campaigns" className="flex-1 text-center py-2 text-gray-400 rounded-lg data-[active]:bg-red-500/10 data-[active]:text-red-400">Campaigns</NavLink>
+                 <NavLink to="/dashboard/earnings" className="flex-1 text-center py-2 text-gray-400 rounded-lg data-[active]:bg-red-500/10 data-[active]:text-red-400">Earnings</NavLink>
+            </div>
+       </div>
     </nav>
   );
 };

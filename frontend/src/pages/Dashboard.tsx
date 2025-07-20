@@ -1,11 +1,10 @@
 // frontend/src/pages/Dashboard.tsx
 
-import React from 'react';
+import React, { Fragment } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
+import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
-import { Fragment } from 'react';
 
 const Dashboard = () => {
   return (
@@ -19,15 +18,51 @@ const Dashboard = () => {
       <div className="relative z-10 flex flex-col h-screen">
         <Navbar />
         
-        {/* Main Content Area */}
-        {/* We add padding to the bottom to prevent the mobile nav from covering content */}
-        <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
-          <Outlet />
-        </main>
+        <div className="flex flex-grow overflow-hidden">
+          {/* --- THIS IS THE FIX --- */}
+          {/* Left Sidebar: Saved Campaigns (Visible on large screens) */}
+          <aside className="hidden lg:block w-64 flex-shrink-0 bg-gray-900/30 border-r border-gray-800/50 p-4">
+            <div className="flex items-center gap-2 text-gray-400 mb-4">
+                <BookmarkIcon className="h-6 w-6 text-red-500" />
+                <h2 className="text-lg font-bold">Saved Campaigns</h2>
+            </div>
+            <div className="text-center text-gray-500 mt-10">
+                <p>Your saved campaigns will appear here.</p>
+                <span className="text-xs font-semibold bg-blue-500/20 text-blue-300 py-1 px-2 rounded-full mt-2 inline-block">
+                    Coming Soon
+                </span>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
+            <Outlet />
+          </main>
+        </div>
       </div>
 
-      {/* --- NEW CHAT POPOVER BUTTON (Visible on all screen sizes) --- */}
-      <div className="fixed bottom-5 right-5 z-50">
+      {/* --- THIS IS THE FIX --- */}
+      {/* Corner Buttons */}
+
+      {/* Top Right: Livestreams (Visible on ALL screens) */}
+      <div className="fixed top-20 right-5 z-30">
+        <Popover className="relative">
+          <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
+              <SignalIcon className="h-6 w-6" />
+          </Popover.Button>
+          <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
+              <Popover.Panel className="absolute right-0 mt-2 w-56 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
+                  <div className="text-center text-gray-400">
+                      <p className="font-bold">Livestreams</p>
+                      <p className="text-sm">This feature is coming soon.</p>
+                  </div>
+              </Popover.Panel>
+          </Transition>
+        </Popover>
+      </div>
+
+      {/* Bottom Right: Chats (Visible on ALL screens) */}
+       <div className="fixed bottom-5 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
               <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
