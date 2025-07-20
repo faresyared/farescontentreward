@@ -2,47 +2,66 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-
-// We define the Campaign type here as well, following our pattern.
-// Note the `_id` is optional because a new campaign won't have one yet.
-interface Campaign {
-    _id?: string;
-    name: string;
-    photo: string;
-    budget: number;
-    rules: string;
-    platforms: string[];
-    status: 'Active' | 'Ended' | 'Soon' | 'Paused';
-}
+import { FullCampaign } from './CampaignDetailsModal'; // Reuse the full campaign type
 
 interface AddCampaignFormProps {
-  onSuccess: (newCampaign: Campaign) => void;
+  onSuccess: (campaign: FullCampaign) => void;
   onClose: () => void;
+  campaignToEdit?: FullCampaign | null;
 }
 
-const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose }) => {
+const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, campaignToEdit }) => {
   const [formData, setFormData] = useState({
-    name: '',
-    photo: '',
-    budget: '',
-    rules: '',
-    platforms: [] as string[],
-    status: 'Soon',
+    name: campaignToEdit?.name || '',
+    photo: campaignToEdit?.photo || '',
+    budget: campaignToEdit?.budget || 0,
+    rules: campaignToEdit?.rules || '',
+    assets: campaignToEdit?.assets || '',
+    platforms: campaignToEdit?.platforms || [],
+    rewardPer1kViews: campaignToEdit?.rewardPer1kViews || 0,
+    type: campaignToEdit?.type || 'UGC',
+    maxPayout: campaignToEdit?.maxPayout || 0,
+    minPayout: campaignToEdit?.minPayout || 0,
+    category: campaignToEdit?.category || 'Entertainment',
+    status: campaignToEdit?.status || 'Soon',
   });
   const [error, setError] = useState('');
-
-  const { name, photo, budget, rules, platforms, status } = formData;
+  const [isUploading, setIsUploading] = useState(false);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value, type } = e.target;
+    // @ts-ignore
+    const isNumber = type === 'number';
+    setFormData({ ...formData, [name]: isNumber ? Number(value) : value });
   };
-
+  
   const handlePlatformChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { value, checked } = e.target;
+    let updatedPlatforms = [...formData.platforms];
     if (checked) {
-      setFormData({ ...formData, platforms: [...platforms, value] });
+      updatedPlatforms.push(value as any);
     } else {
-      setFormData({ ...formData, platforms: platforms.filter(p => p !== value) });
+      updatedPlatforms = updatedPlatforms.filter(p => p !== value);
+    }
+    setFormData({ ...formData, platforms: updatedPlatforms });
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    const uploadData = new FormData();
+    uploadData.append('file', file);
+    uploadData.append('upload_preset', 'reelify_preset'); // Create an "unsigned" preset in Cloudinary settings
+    
+    try {
+        const res = await axios.post(`https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`, uploadData);
+        setFormData({ ...formData, photo: res.data.secure_url });
+    } catch (err) {
+        setError('Image upload failed. Please try again.');
+    } finally {
+        setIsUploading(false);
     }
   };
 
@@ -50,58 +69,105 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose })
     e.preventDefault();
     setError('');
     try {
-      const campaignData = { ...formData, budget: Number(budget) };
-      const res = await axios.post('/api/campaigns', campaignData);
-      onSuccess(res.data); // Pass the new campaign back to the parent
+      let res;
+      if (campaignToEdit) {
+        res = await axios.put(`/api/campaigns/${campaignToEdit._id}`, formData);
+      } else {
+        res = await axios.post('/api/campaigns', formData);
+      }
+      onSuccess(res.data);
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to create campaign.');
+      setError(err.response?.data?.message || 'Failed to save campaign.');
     }
   };
 
   return (
     <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Name and Type */}
+      <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Campaign Name</label>
-          <input type="text" name="name" value={name} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+          <input type="text" name="name" value={formData.name} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
         </div>
         <div>
-          <label className="block text-sm font-medium text-gray-300">Budget ($)</label>
-          <input type="number" name="budget" value={budget} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+          <label className="block text-sm font-medium text-gray-300">Type</label>
+          <select name="type" value={formData.type} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
+            <option>UGC</option><option>Clipping</option><option>Faceless UGC</option>
+          </select>
         </div>
       </div>
+
+      {/* Photo Upload */}
       <div>
-        <label className="block text-sm font-medium text-gray-300">Photo URL</label>
-        <input type="text" name="photo" value={photo} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        <label className="block text-sm font-medium text-gray-300">Campaign Photo</label>
+        <input type="file" accept="image/*" onChange={handleImageUpload} className="mt-1 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-500/20 file:text-red-300 hover:file:bg-red-500/30"/>
+        {isUploading && <p className="text-blue-400">Uploading...</p>}
+        {formData.photo && !isUploading && <img src={formData.photo} alt="Preview" className="mt-2 h-32 w-auto rounded-lg"/>}
       </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-300">Rules</label>
-        <textarea name="rules" value={rules} onChange={onChange} required rows={4} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+      
+      {/* Rest of the form fields */}
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Category</label>
+          <select name="category" value={formData.category} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
+            <option>Personal Brand</option><option>Entertainment</option><option>Music</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Status</label>
+          <select name="status" value={formData.status} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
+            <option>Soon</option><option>Active</option><option>Paused</option><option>Ended</option>
+          </select>
+        </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Budget ($)</label>
+          <input type="number" name="budget" value={formData.budget} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Reward/1k Views ($)</label>
+          <input type="number" name="rewardPer1kViews" value={formData.rewardPer1kViews} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        </div>
+      </div>
+       <div className="grid grid-cols-2 gap-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Min Payout ($)</label>
+          <input type="number" name="minPayout" value={formData.minPayout} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-300">Max Payout ($)</label>
+          <input type="number" name="maxPayout" value={formData.maxPayout} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+        </div>
+      </div>
+
       <div>
         <label className="block text-sm font-medium text-gray-300">Platforms</label>
         <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-2">
-          {['YouTube', 'X', 'Instagram', 'TikTok'].map(platform => (
-            <label key={platform} className="flex items-center space-x-2 text-gray-300">
-              <input type="checkbox" value={platform} checked={platforms.includes(platform)} onChange={handlePlatformChange} className="bg-gray-800 border-gray-600 text-red-600 rounded focus:ring-red-500"/>
-              <span>{platform}</span>
+          {['YouTube', 'X', 'Instagram', 'TikTok'].map(p => (
+            <label key={p} className="flex items-center space-x-2 text-gray-300">
+              <input type="checkbox" value={p} checked={formData.platforms.includes(p as any)} onChange={handlePlatformChange} className="bg-gray-800 border-gray-600 text-red-600 rounded focus:ring-red-500"/>
+              <span>{p}</span>
             </label>
           ))}
         </div>
       </div>
-       <div>
-          <label className="block text-sm font-medium text-gray-300">Status</label>
-          <select name="status" value={status} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
-            <option value="Soon">Soon</option>
-            <option value="Active">Active</option>
-            <option value="Paused">Paused</option>
-            <option value="Ended">Ended</option>
-          </select>
-       </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300">Rules</label>
+        <textarea name="rules" value={formData.rules} onChange={onChange} required rows={3} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+      </div>
+      <div>
+        <label className="block text-sm font-medium text-gray-300">Assets URL</label>
+        <input type="text" name="assets" value={formData.assets} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
+      </div>
+
       {error && <p className="text-red-400 text-sm text-center">{error}</p>}
       <div className="flex justify-end pt-4 gap-3">
         <button type="button" onClick={onClose} className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">Create Campaign</button>
+        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isUploading}>
+          {isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign')}
+        </button>
       </div>
     </form>
   );

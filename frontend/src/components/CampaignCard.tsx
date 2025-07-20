@@ -2,7 +2,8 @@
 
 import React from 'react';
 import { BookmarkIcon, PencilIcon } from '@heroicons/react/24/outline';
-import { FaYoutube, FaTwitter, FaInstagram, FaTiktok } from 'react-icons/fa';
+import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
+import { FaXTwitter } from "react-icons/fa6"; // Import the new X icon
 import { useAuth } from '../context/AuthContext';
 
 // Define the Campaign type locally
@@ -18,7 +19,7 @@ export interface Campaign {
 
 const platformIcons = {
   YouTube: <FaYoutube className="text-red-600" />,
-  X: <FaTwitter className="text-blue-400" />,
+  X: <FaXTwitter className="text-white" />, // <-- This is the change
   Instagram: <FaInstagram className="text-pink-500" />,
   TikTok: <FaTiktok className="text-white" />,
 };

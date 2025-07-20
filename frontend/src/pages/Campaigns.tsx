@@ -5,27 +5,23 @@ import axios from 'axios';
 import CampaignCard from '../components/CampaignCard';
 import Modal from '../components/Modal';
 import AddCampaignForm from '../components/AddCampaignForm';
+import CampaignDetailsModal, { FullCampaign } from '../components/CampaignDetailsModal';
 import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
-
-interface Campaign {
-  _id: string;
-  name: string;
-  photo: string;
-  platform: any;
-  budget: number;
-  type: any;
-  status: 'Active' | 'Ended' | 'Soon' | 'Paused';
-}
 
 const Campaigns = () => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
 
-  const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+  const [campaigns, setCampaigns] = useState<FullCampaign[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // State for modals
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<FullCampaign | null>(null);
+  const [campaignToEdit, setCampaignToEdit] = useState<FullCampaign | null>(null);
 
   useEffect(() => {
     const fetchCampaigns = async () => {
@@ -42,9 +38,33 @@ const Campaigns = () => {
     fetchCampaigns();
   }, []);
 
-  const handleAddCampaignSuccess = (newCampaign: any) => {
-    setCampaigns([newCampaign, ...campaigns]);
-    setIsModalOpen(false);
+  // This is the corrected function
+  const handleFormSuccess = (updatedCampaign: FullCampaign) => {
+    if (campaignToEdit) {
+      // If we were editing, find and replace the campaign in the list
+      setCampaigns(campaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c));
+    } else {
+      // If we were adding, add the new campaign to the start of the list
+      setCampaigns([updatedCampaign, ...campaigns]);
+    }
+    // Close the form modal and clear the edit state
+    setIsFormModalOpen(false);
+    setCampaignToEdit(null);
+  };
+
+  const openAddModal = () => {
+    setCampaignToEdit(null); // Make sure we're not editing
+    setIsFormModalOpen(true);
+  };
+
+  const openEditModal = (campaign: FullCampaign) => {
+    setCampaignToEdit(campaign); // Set the campaign to edit
+    setIsFormModalOpen(true);
+  };
+
+  const openDetailsModal = (campaign: FullCampaign) => {
+    setSelectedCampaign(campaign);
+    setIsDetailsModalOpen(true);
   };
 
   const renderContent = () => {
@@ -54,7 +74,12 @@ const Campaigns = () => {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {campaigns.map((campaign) => (
-          <CampaignCard key={campaign._id} campaign={campaign} />
+          <CampaignCard
+            key={campaign._id}
+            campaign={campaign}
+            onCardClick={() => openDetailsModal(campaign)}
+            onEditClick={() => openEditModal(campaign)}
+          />
         ))}
       </div>
     );
@@ -62,20 +87,34 @@ const Campaigns = () => {
 
   return (
     <>
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Campaign">
-        <AddCampaignForm onSuccess={handleAddCampaignSuccess} onClose={() => setIsModalOpen(false)} />
+      {/* Add/Edit Modal */}
+      <Modal isOpen={isFormModalOpen} onClose={() => { setIsFormModalOpen(false); setCampaignToEdit(null); }} title={campaignToEdit ? "Edit Campaign" : "Add New Campaign"}>
+        <AddCampaignForm
+          onSuccess={handleFormSuccess}
+          onClose={() => { setIsFormModalOpen(false); setCampaignToEdit(null); }}
+          campaignToEdit={campaignToEdit}
+        />
       </Modal>
+
+      {/* Details Modal */}
+      {selectedCampaign && (
+        <CampaignDetailsModal
+          campaign={selectedCampaign}
+          isOpen={isDetailsModalOpen}
+          onClose={() => setIsDetailsModalOpen(false)}
+        />
+      )}
 
       <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-white">Campaigns</h1>
           {isAdmin && (
-            <button onClick={() => setIsModalOpen(true)} className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105">
+            <button onClick={openAddModal} className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105">
               <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Campaign
             </button>
           )}
         </div>
-        <div className="mb-8 p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
+        <div className="mb-8 p-4 bg-gray-900/ ৫০ rounded-xl border border-gray-800/50">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative md:col-span-2">
               <input type="text" placeholder="Search by campaign name..." className="w-full bg-gray-800/60 border border-gray-700 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-red-500 outline-none text-white"/>
