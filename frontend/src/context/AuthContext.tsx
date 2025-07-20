@@ -1,7 +1,7 @@
 // src/context/AuthContext.tsx
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import jwtDecode from 'jwt-decode';
+import { jwtDecode } from 'jwt-decode';
 import setAuthToken from '../utils/setAuthToken';
 
 interface AuthUser {
