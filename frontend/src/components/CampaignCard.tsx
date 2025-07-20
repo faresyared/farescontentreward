@@ -1,12 +1,11 @@
 // frontend/src/components/CampaignCard.tsx
 
 import React from 'react';
-import { BookmarkIcon, PencilIcon } from '@heroicons/react/24/outline';
+import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 import { useAuth } from '../context/AuthContext';
 
-// The Campaign interface for the card
 export interface Campaign {
   _id: string;
   name: string;
@@ -17,7 +16,6 @@ export interface Campaign {
   status: 'Active' | 'Ended' | 'Soon' | 'Paused';
 }
 
-// Styles for the status badge
 const statusStyles = {
   Active: 'bg-green-500/20 text-green-400 border-green-500/30',
   Ended: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
@@ -32,31 +30,30 @@ const platformIcons = {
   TikTok: <FaTiktok className="text-white" />,
 };
 
-const CampaignCard: React.FC<{ campaign: Campaign; onCardClick: () => void; onEditClick: () => void; }> = ({ campaign, onCardClick, onEditClick }) => {
+const CampaignCard: React.FC<{ campaign: Campaign; onCardClick: () => void; onEditClick: () => void; onDeleteClick: () => void; }> = ({ campaign, onCardClick, onEditClick, onDeleteClick }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const isDimmed = campaign.status === 'Ended' || campaign.status === 'Paused';
 
-  const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents the main card click
-    onEditClick();
-  };
+  const handleEdit = (e: React.MouseEvent) => { e.stopPropagation(); onEditClick(); };
+  const handleDelete = (e: React.MouseEvent) => { e.stopPropagation(); onDeleteClick(); };
 
   return (
-    <div
-      onClick={onCardClick}
-      className={`bg-gray-900/50 rounded-2xl border border-gray-800/50 overflow-hidden group transition-all duration-300 relative ${isDimmed ? 'opacity-60' : 'cursor-pointer hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1'}`}
-    >
-      {isAdmin && !isDimmed && (
-        <button onClick={handleEdit} className="absolute top-2 right-2 z-10 p-2 bg-black/50 rounded-full text-gray-300 hover:bg-red-600 hover:text-white transition-colors">
-          <PencilIcon className="h-5 w-5" />
-        </button>
+    <div onClick={onCardClick} className={`bg-gray-900/50 rounded-2xl border border-gray-800/50 overflow-hidden group transition-all duration-300 relative ${isDimmed ? 'opacity-60' : 'cursor-pointer hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1'}`}>
+      {isAdmin && (
+        <div className="absolute top-2 right-2 z-10 flex gap-2">
+          <button onClick={handleDelete} className="p-2 bg-black/50 rounded-full text-gray-300 hover:bg-red-800 hover:text-white transition-colors">
+            <TrashIcon className="h-5 w-5" />
+          </button>
+          <button onClick={handleEdit} className="p-2 bg-black/50 rounded-full text-gray-300 hover:bg-blue-600 hover:text-white transition-colors">
+            <PencilIcon className="h-5 w-5" />
+          </button>
+        </div>
       )}
       <img className="h-48 w-full object-cover" src={campaign.photo} alt={campaign.name} />
       <div className="p-4">
         <div className="flex justify-between items-start mb-1">
           <h3 className="text-xl font-bold text-white truncate pr-2">{campaign.name}</h3>
-          {/* --- THIS IS THE NEW STATUS BADGE --- */}
           <div className={`px-2 py-1 text-xs font-semibold rounded-full border whitespace-nowrap ${statusStyles[campaign.status]}`}>
             {campaign.status}
           </div>

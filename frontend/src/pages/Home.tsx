@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import PostCard, { Post } from '../components/PostCard';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal'; // Import confirmation modal
 import AddPostForm from '../components/AddPostForm';
 import PostDetailsModal from '../components/PostDetailsModal';
 import { PencilSquareIcon } from '@heroicons/react/24/solid';
@@ -19,8 +20,10 @@ const Home = () => {
   
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // State for delete modal
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [postToEdit, setPostToEdit] = useState<Post | null>(null);
+  const [postToDelete, setPostToDelete] = useState<Post | null>(null); // State for post to delete
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -49,38 +52,56 @@ const Home = () => {
     setPostToEdit(null);
   };
 
-  const handlePostUpdate = (updatedPost: Post) => {
+ const handleFormSuccess = (updatedPost: Post) => {
+    if (postToEdit) {
+      setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
+    } else {
+      setPosts([updatedPost, ...posts]);
+    }
+    setIsFormModalOpen(false);
+    setPostToEdit(null);
+  };
+
+    const handlePostUpdate = (updatedPost: Post) => {
     setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
     setSelectedPost(updatedPost);
   };
-  
-  const openAddModal = () => {
-    setPostToEdit(null); // Ensure we are in "create" mode
-    setIsFormModalOpen(true);
+
+  const openAddModal = () => { setPostToEdit(null); setIsFormModalOpen(true); };
+  const openEditModal = (post: Post) => { setPostToEdit(post); setIsFormModalOpen(true); };
+  const openDetailsModal = (post: Post) => { setSelectedPost(post); setIsDetailsModalOpen(true); };
+
+const openDeleteModal = (post: Post) => {
+    setPostToDelete(post);
+    setIsDeleteModalOpen(true);
   };
 
-  const openEditModal = (post: Post) => {
-    setPostToEdit(post); // Set the post to edit
-    setIsFormModalOpen(true);
+const handleDeletePost = async () => {
+    if (!postToDelete) return;
+    try {
+      await axios.delete(`/api/posts/${postToDelete._id}`);
+      setPosts(posts.filter(p => p._id !== postToDelete._id));
+      setIsDeleteModalOpen(false);
+      setPostToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete post", err);
+      setIsDeleteModalOpen(false);
+    }
   };
-  
-  const openPostDetails = (post: Post) => {
-    setSelectedPost(post);
-    setIsDetailsModalOpen(true);
-  };
+
 
   const renderContent = () => {
     if (loading) return <p className="text-center text-gray-400">Loading feed...</p>;
     if (error) return <p className="text-center text-red-500">{error}</p>;
     if (posts.length === 0) return <p className="text-center text-gray-400">No posts in the feed yet.</p>;
-    return (
+   return (
       <div className="space-y-8">
         {posts.map((post) => (
           <PostCard 
-            key={post._id} 
-            post={post} 
+            key={post._id} post={post} 
             onPostClick={() => openPostDetails(post)}
-            onEditClick={() => openEditModal(post)} // This was the missing line
+            onEditClick={() => openEditModal(post)}
+            onDeleteClick={() => openDeleteModal(post)}
           />
         ))}
       </div>
@@ -89,25 +110,20 @@ const Home = () => {
 
   return (
     <>
-      <Modal 
-        isOpen={isFormModalOpen} 
-        onClose={() => { setIsFormModalOpen(false); setPostToEdit(null); }} 
-        title={postToEdit ? 'Edit Post' : 'Create a New Post'}
-      >
-        <AddPostForm 
-          onSuccess={handleFormSuccess} 
-          onClose={() => { setIsFormModalOpen(false); setPostToEdit(null); }} 
-          postToEdit={postToEdit}
-        />
+      <Modal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} title={postToEdit ? 'Edit Post' : 'Create a New Post'}>
+        <AddPostForm onSuccess={handleFormSuccess} onClose={() => setIsFormModalOpen(false)} postToEdit={postToEdit} />
       </Modal>
 
-      <PostDetailsModal 
-        post={selectedPost} 
-        isOpen={isDetailsModalOpen} 
-        onClose={() => setIsDetailsModalOpen(false)} 
-        onPostUpdate={handlePostUpdate}
-      />
+      <PostDetailsModal post={selectedPost} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} onPostUpdate={handlePostUpdate} />
       
+ <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeletePost}
+        title="Delete Post"
+        message="Are you sure you want to permanently delete this post? This action cannot be undone."
+      />
+
       <div className="max-w-3xl mx-auto">
         {isAdmin && (
           <div className="mb-6">

@@ -10,17 +10,11 @@ const cors = require('cors');
 // --- DATABASE CONNECTION ---
 let isConnected;
 async function connectDB() {
-    if (isConnected) {
-        console.log('=> using existing database connection');
-        return;
-    }
+    if (isConnected) { return; }
     try {
-        console.log('=> using NEW database connection');
         await mongoose.connect(process.env.MONGODB_URI);
         isConnected = true;
-    } catch (err) {
-        console.error('MongoDB Connection Failed:', err);
-    }
+    } catch (err) { console.error('MongoDB Connection Failed:', err); }
 }
 
 // --- MONGOOSE SCHEMAS (MODELS) ---
@@ -142,21 +136,16 @@ router.post('/users/signin', async (req, res) => {
 router.get('/campaigns', auth, async (req, res) => {
     try {
         const { search, platform, type } = req.query;
-        
-        // Build a dynamic query object
         const query = {};
         if (search) {
-            // Use a case-insensitive regex for searching the campaign name
             query.name = { $regex: search, $options: 'i' };
         }
         if (platform && platform !== 'All Platforms') {
             query.platforms = { $in: [platform] };
-
         }
         if (type && type !== 'All Types') {
             query.type = type;
         }
-
         const campaigns = await Campaign.find(query).sort({ status: 1, createdAt: -1 });
         res.json(campaigns);
     } catch (err) {
@@ -200,13 +189,24 @@ router.put('/campaigns/:id', [auth, adminAuth], async (req, res) => {
     }
 });
 
+router.delete('/campaigns/:id', [auth, adminAuth], async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+        if (!campaign) {
+            return res.status(404).json({ msg: 'Campaign not found' });
+        }
+        await Campaign.findByIdAndDelete(req.params.id);
+        res.json({ msg: 'Campaign removed' });
+    } catch (err) {
+        console.error("Error deleting campaign:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 // POST ROUTES
 router.get('/posts', auth, async (req, res) => {
     try {
-        const posts = await Post.find()
-            .sort({ createdAt: -1 })
-            .populate('author', 'username avatar')
-            .populate('comments.user', 'username avatar');
+        const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username avatar').populate('comments.user', 'username avatar');
         res.json(posts);
     } catch (err) {
         console.error("Error fetching posts:", err);
@@ -229,10 +229,7 @@ router.get('/posts/:id', auth, async (req, res) => {
 
 router.post('/posts', [auth, adminAuth], async (req, res) => {
     try {
-        const newPost = new Post({
-            ...req.body,
-            author: req.user.id
-        });
+        const newPost = new Post({ ...req.body, author: req.user.id });
         const post = await newPost.save();
         const populatedPost = await Post.findById(post._id).populate('author', 'username avatar');
         res.status(201).json(populatedPost);
@@ -248,22 +245,24 @@ router.put('/posts/:id', [auth, adminAuth], async (req, res) => {
         if (!post) {
             return res.status(404).json({ msg: 'Post not found' });
         }
-
-        // Ensure the admin is the one who created the post (optional, but good security)
-        if (post.author.toString() !== req.user.id) {
-             // Or if you allow any admin to edit any post, you can remove this check.
-             // For now, we assume only the original admin author can edit.
-        }
-
-        const updatedPost = await Post.findByIdAndUpdate(
-            req.params.id,
-            { $set: req.body },
-            { new: true }
-        ).populate('author', 'username avatar');
-        
+        const updatedPost = await Post.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true }).populate('author', 'username avatar');
         res.json(updatedPost);
     } catch (err) {
         console.error("Error updating post:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.delete('/posts/:id', [auth, adminAuth], async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) {
+            return res.status(404).json({ msg: 'Post not found' });
+        }
+        await Post.findByIdAndDelete(req.params.id);
+        res.json({ msg: 'Post removed' });
+    } catch (err) {
+        console.error("Error deleting post:", err);
         res.status(500).send('Server Error');
     }
 });
@@ -273,7 +272,6 @@ router.put('/posts/:id/like', auth, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ msg: 'Post not found' });
-
         if (post.likes.some(like => like.equals(req.user.id))) {
             post.likes = post.likes.filter(like => !like.equals(req.user.id));
         } else {
@@ -291,14 +289,9 @@ router.post('/posts/:id/comment', auth, async (req, res) => {
     try {
         const post = await Post.findById(req.params.id);
         if (!post) return res.status(404).json({ msg: 'Post not found' });
-        
-        const newComment = {
-            text: req.body.text,
-            user: req.user.id,
-        };
+        const newComment = { text: req.body.text, user: req.user.id, };
         post.comments.unshift(newComment);
         await post.save();
-        
         const populatedPost = await Post.findById(post._id).populate('comments.user', 'username avatar');
         res.status(201).json(populatedPost.comments);
     } catch (err) {

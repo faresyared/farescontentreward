@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import CampaignCard from '../components/CampaignCard';
 import Modal from '../components/Modal';
+import ConfirmationModal from '../components/ConfirmationModal';
 import AddCampaignForm from '../components/AddCampaignForm';
 import CampaignDetailsModal, { FullCampaign } from '../components/CampaignDetailsModal';
 import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
@@ -17,22 +18,21 @@ const Campaigns = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // --- NEW STATE FOR FILTERS ---
   const [searchQuery, setSearchQuery] = useState('');
   const [platformFilter, setPlatformFilter] = useState('All Platforms');
   const [typeFilter, setTypeFilter] = useState('All Types');
 
-  // Modals state
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<FullCampaign | null>(null);
   const [campaignToEdit, setCampaignToEdit] = useState<FullCampaign | null>(null);
 
-  // --- UPDATED FETCH FUNCTION ---
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [campaignToDelete, setCampaignToDelete] = useState<FullCampaign | null>(null);
+
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
-      // Build the query parameters
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
       if (platformFilter !== 'All Platforms') params.append('platform', platformFilter);
@@ -45,16 +45,13 @@ const Campaigns = () => {
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, platformFilter, typeFilter]); // Re-run when filters change
+  }, [searchQuery, platformFilter, typeFilter]);
 
-  // --- USEEFFECT TO TRIGGER FETCH ---
   useEffect(() => {
-    // We use a debounce to prevent API calls on every keystroke
     const timer = setTimeout(() => {
       fetchCampaigns();
-    }, 500); // Wait 500ms after user stops typing
-
-    return () => clearTimeout(timer); // Cleanup the timer
+    }, 500);
+    return () => clearTimeout(timer);
   }, [fetchCampaigns]);
 
   const handleFormSuccess = (updatedCampaign: FullCampaign) => {
@@ -71,16 +68,38 @@ const Campaigns = () => {
   const openEditModal = (campaign: FullCampaign) => { setCampaignToEdit(campaign); setIsFormModalOpen(true); };
   const openDetailsModal = (campaign: FullCampaign) => { setSelectedCampaign(campaign); setIsDetailsModalOpen(true); };
 
+  const openDeleteModal = (campaign: FullCampaign) => {
+    setCampaignToDelete(campaign);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleDeleteCampaign = async () => {
+    if (!campaignToDelete) return;
+    try {
+      await axios.delete(`/api/campaigns/${campaignToDelete._id}`);
+      setCampaigns(campaigns.filter(c => c._id !== campaignToDelete._id));
+      setIsDeleteModalOpen(false);
+      setCampaignToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete campaign", err);
+      // You can set an error state here to show in the UI
+      setIsDeleteModalOpen(false);
+    }
+  };
+
   const renderContent = () => {
-    if (loading) return <p className="text-center text-gray-400">Loading campaigns...</p>;
+    if (loading) return <p className="text-center text-gray-400">Loading...</p>;
     if (error) return <p className="text-center text-red-500">{error}</p>;
-    if (campaigns.length === 0) return <p className="text-center text-gray-400">No campaigns match your filters.</p>;
+    if (campaigns.length === 0) return <p className="text-center text-gray-400">No campaigns found.</p>;
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {campaigns.map((campaign) => (
-          <CampaignCard 
-            key={campaign._id} campaign={campaign}
-            onCardClick={() => openDetailsModal(campaign)} onEditClick={() => openEditModal(campaign)}
+          <CampaignCard
+            key={campaign._id}
+            campaign={campaign}
+            onCardClick={() => openDetailsModal(campaign)}
+            onEditClick={() => openEditModal(campaign)}
+            onDeleteClick={() => openDeleteModal(campaign)}
           />
         ))}
       </div>
@@ -95,7 +114,13 @@ const Campaigns = () => {
       {selectedCampaign && (
         <CampaignDetailsModal campaign={selectedCampaign} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
       )}
-
+      <ConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteCampaign}
+        title="Delete Campaign"
+        message={`Are you sure you want to permanently delete the "${campaignToDelete?.name}" campaign? This action cannot be undone.`}
+      />
       <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-white">Campaigns</h1>
@@ -105,37 +130,20 @@ const Campaigns = () => {
             </button>
           )}
         </div>
-        
-        {/* --- FUNCTIONAL FILTER CONTROLS --- */}
         <div className="mb-8 p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative md:col-span-2">
-              <input 
-                type="text" 
-                placeholder="Search by campaign name..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-gray-800/60 border border-gray-700 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-red-500 outline-none text-white"
-              />
+              <input type="text" placeholder="Search by name..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="w-full bg-gray-800/60 border border-gray-700 rounded-lg py-2 pl-10 pr-4 focus:ring-2 focus:ring-red-500 outline-none text-white"/>
               <MagnifyingGlassIcon className="h-5 w-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2"/>
             </div>
-            <select 
-              value={platformFilter}
-              onChange={(e) => setPlatformFilter(e.target.value)}
-              className="bg-gray-800/60 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none text-white"
-            >
+            <select value={platformFilter} onChange={(e) => setPlatformFilter(e.target.value)} className="bg-gray-800/60 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none text-white">
               <option>All Platforms</option><option>YouTube</option><option>X</option><option>Instagram</option><option>TikTok</option>
             </select>
-            <select 
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="bg-gray-800/60 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none text-white"
-            >
+            <select value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} className="bg-gray-800/60 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none text-white">
               <option>All Types</option><option>UGC</option><option>Clipping</option><option>Faceless UGC</option>
             </select>
           </div>
         </div>
-        
         {renderContent()}
       </div>
     </>
