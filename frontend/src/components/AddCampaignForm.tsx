@@ -62,15 +62,15 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
     setError('');
     const uploadData = new FormData();
     uploadData.append('file', file);
-    uploadData.append('upload_preset', 'reelify_preset');
+    uploadData.append('upload_preset', 'reelify_preset');  // Ensure you use the correct upload preset here
 
     try {
         const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 
-        // Create a clean axios instance without the x-auth-token header
+        // Remove the x-auth-token header by creating a clean axios instance for Cloudinary upload
         const cloudinaryAxios = axios.create({
             headers: {
-                // No x-auth-token here
+                // Do not include any token or additional headers
             }
         });
 
