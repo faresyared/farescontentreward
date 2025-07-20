@@ -40,13 +40,10 @@ const Home = () => {
     fetchPosts();
   }, []);
 
-  // This is the single, correct version of the function
   const handleFormSuccess = (updatedPost: Post) => {
     if (postToEdit) {
-      // If editing, update the post in the list
       setPosts(posts.map(p => p._id === updatedPost._id ? updatedPost : p));
     } else {
-      // If creating, add to the top of the list
       setPosts([updatedPost, ...posts]);
     }
     setIsFormModalOpen(false);
@@ -75,6 +72,7 @@ const Home = () => {
 
   const openDeleteModal = (post: Post) => {
     setPostToDelete(post);
+    setIsDeleteModalOpen(false); // Close details modal if open
     setIsDeleteModalOpen(true);
   };
 

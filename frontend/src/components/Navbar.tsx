@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, UserCircleIcon } from '@heroicons/react/24/outline'; // Using heroicons for sleek icons
+import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, UserCircleIcon, ChatBubbleBottomCenterTextIcon, SignalIcon, BookmarkIcon } from '@heroicons/react/24/outline';
 
 const Navbar = () => {
   // We'll replace this with real user data later
@@ -19,7 +19,7 @@ const Navbar = () => {
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-black/70 backdrop-blur-xl border-b border-gray-800/50">
+   <nav className="sticky top-0 z-50 bg-black/70 backdrop-blur-xl border-b border-gray-800/50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left side: Logo and Navigation */}
@@ -37,9 +37,19 @@ const Navbar = () => {
               <NavLink to="/dashboard/earnings" className={navLinkClass}>
                 <CurrencyDollarIcon className="h-5 w-5 mr-2" /> Earnings
               </NavLink>
+              {/* --- NEW LINKS START HERE --- */}
+              <NavLink to="/dashboard/chats" className={navLinkClass}>
+                <ChatBubbleBottomCenterTextIcon className="h-5 w-5 mr-2" /> Chats
+              </NavLink>
+              <NavLink to="/dashboard/livestreams" className={navLinkClass}>
+                <SignalIcon className="h-5 w-5 mr-2" /> Livestreams
+              </NavLink>
+              <NavLink to="/dashboard/saved" className={navLinkClass}>
+                <BookmarkIcon className="h-5 w-5 mr-2" /> Saved
+              </NavLink>
+              {/* --- NEW LINKS END HERE --- */}
             </div>
           </div>
-
           {/* Right side: Profile */}
           <div className="flex items-center">
              <NavLink to="/dashboard/profile" className="flex items-center space-x-3 hover:bg-gray-800/50 p-2 rounded-lg transition-colors duration-300">

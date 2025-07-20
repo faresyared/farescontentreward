@@ -1,4 +1,6 @@
-import React, { useEffect } from 'react';
+// src/App.tsx
+
+import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import setAuthToken from './utils/setAuthToken';
 
@@ -11,14 +13,20 @@ import Campaigns from './pages/Campaigns';
 import Earnings from './pages/Earnings';
 import Profile from './pages/Profile';
 
-function App() {
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setAuthToken(token); // تعيين التوكن في axios headers
-    }
-  }, []);
+// Simple "Coming Soon" component
+const ComingSoon = () => (
+  <div className="text-center">
+    <h1 className="text-5xl font-bold text-white">Coming Soon...</h1>
+    <p className="text-gray-400 mt-2">This feature is under construction.</p>
+  </div>
+);
 
+
+if (localStorage.token) {
+  setAuthToken(localStorage.token);
+}
+
+function App() {
   return (
     <Routes>
       {/* Auth Routes */}
@@ -32,6 +40,11 @@ function App() {
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="profile" element={<Profile />} />
+        {/* --- NEW ROUTES START HERE --- */}
+        <Route path="chats" element={<ComingSoon />} />
+        <Route path="livestreams" element={<ComingSoon />} />
+        <Route path="saved" element={<ComingSoon />} />
+        {/* --- NEW ROUTES END HERE --- */}
       </Route>
     </Routes>
   );

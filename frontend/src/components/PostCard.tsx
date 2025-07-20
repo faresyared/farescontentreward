@@ -5,6 +5,12 @@ import { HandThumbUpIcon, ChatBubbleOvalLeftEllipsisIcon, FaceSmileIcon, PhotoIc
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '../context/AuthContext';
 
+export interface Reaction {
+  _id: string;
+  user: { _id: string; username: string; avatar: string; };
+  emoji: string;
+}
+
 export interface Comment {
   _id: string;
   user: { _id: string; username: string; avatar: string; };
@@ -20,6 +26,7 @@ export interface Post {
   videoUrls?: string[];
   likes: string[];
   comments: Comment[];
+  reactions: Reaction[];
   createdAt: string;
 }
 
@@ -50,8 +57,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostClick, onEditClick, onD
   };
 
   return (
-    <div 
-      onClick={onPostClick} 
+    <div onClick={onPostClick} 
       className="bg-gray-900/50 backdrop-blur-md rounded-2xl border border-gray-800/50 shadow-lg transition-all duration-300 hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1 cursor-pointer"
     >
       <div className="p-5">
@@ -92,7 +98,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostClick, onEditClick, onD
         )}
       </div>
 
-      <div className="border-t border-gray-800/70 px-5 py-3 flex justify-between items-center text-gray-400">
+     <div className="border-t border-gray-800/70 px-5 py-3 flex justify-between items-center text-gray-400">
         <div className="flex space-x-5">
            <button className="flex items-center space-x-2 hover:text-red-500 transition-colors">
             <HandThumbUpIcon className="h-6 w-6" /> <span>{post.likes.length}</span>
@@ -102,8 +108,9 @@ const PostCard: React.FC<PostCardProps> = ({ post, onPostClick, onEditClick, onD
           </button>
         </div>
         <div>
-            <button className="hover:text-red-500 transition-colors">
+            <button className="flex items-center space-x-2 hover:text-red-500 transition-colors">
                 <FaceSmileIcon className="h-6 w-6" />
+                <span>{post.reactions.length}</span> 
             </button>
         </div>
       </div>

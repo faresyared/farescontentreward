@@ -50,6 +50,11 @@ const CampaignSchema = new mongoose.Schema({
     status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon', required: true },
 }, { timestamps: true });
 
+const ReactionSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    emoji: { type: String, required: true },
+});
+
 const CommentSchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     text: { type: String, required: true },
@@ -62,6 +67,7 @@ const PostSchema = new mongoose.Schema({
     videoUrls: { type: [String], default: [] },
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     comments: [CommentSchema],
+    reactions: [ReactionSchema], // Array of reaction objects
 }, { timestamps: true });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -214,12 +220,13 @@ router.delete('/campaigns/:id', [auth, adminAuth], async (req, res) => {
 // POST ROUTES
 router.get('/posts', auth, async (req, res) => {
     try {
-        const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username avatar').populate('comments.user', 'username avatar');
+        const posts = await Post.find()
+            .sort({ createdAt: -1 })
+            .populate('author', 'username avatar')
+            .populate('comments.user', 'username avatar')
+            .populate('reactions.user', 'username avatar'); // Also populate reaction users
         res.json(posts);
-    } catch (err) {
-        console.error("Error fetching posts:", err);
-        res.status(500).send('Server Error');
-    }
+    } catch (err) { console.error("Error fetching posts:", err); res.status(500).send('Server Error'); }
 });
 
 router.get('/posts/:id', auth, async (req, res) => {
@@ -306,6 +313,79 @@ router.post('/posts/:id/comment', auth, async (req, res) => {
         console.error(err);
         res.status(500).send('Server Error');
     }
+});
+// EDIT A COMMENT
+router.put('/posts/:postId/comments/:commentId', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        if (!post) return res.status(404).json({ msg: 'Post not found' });
+
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) return res.status(404).json({ msg: 'Comment not found' });
+        
+        // Ensure the user is the author of the comment
+        if (comment.user.toString() !== req.user.id) {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+        
+        comment.text = req.body.text;
+        await post.save();
+        const populatedPost = await Post.findById(post._id).populate('comments.user', 'username avatar');
+        res.json(populatedPost.comments);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+});
+
+// DELETE A COMMENT
+router.delete('/posts/:postId/comments/:commentId', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId);
+        if (!post) return res.status(404).json({ msg: 'Post not found' });
+
+        const comment = post.comments.id(req.params.commentId);
+        if (!comment) return res.status(404).json({ msg: 'Comment not found' });
+
+        const currentUser = await User.findById(req.user.id);
+        // Allow deletion if user is the comment author OR an admin
+        if (comment.user.toString() !== req.user.id && currentUser.role !== 'admin') {
+            return res.status(401).json({ msg: 'User not authorized' });
+        }
+        
+        comment.remove();
+        await post.save();
+        const populatedPost = await Post.findById(post._id).populate('comments.user', 'username avatar');
+        res.json(populatedPost.comments);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+});
+
+// ADD / CHANGE A REACTION
+router.put('/posts/:id/react', auth, async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.id);
+        if (!post) return res.status(404).json({ msg: 'Post not found' });
+        
+        const { emoji } = req.body;
+        const userId = req.user.id;
+        
+        const existingReactionIndex = post.reactions.findIndex(r => r.user.equals(userId));
+
+        if (existingReactionIndex > -1) {
+            // If user has already reacted
+            if (post.reactions[existingReactionIndex].emoji === emoji) {
+                // If they click the same emoji, remove the reaction
+                post.reactions.splice(existingReactionIndex, 1);
+            } else {
+                // If they click a different emoji, update it
+                post.reactions[existingReactionIndex].emoji = emoji;
+            }
+        } else {
+            // If user has not reacted, add a new reaction
+            post.reactions.push({ user: userId, emoji });
+        }
+        
+        await post.save();
+        const populatedPost = await Post.findById(post._id).populate('reactions.user', 'username avatar');
+        res.json(populatedPost.reactions);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
 });
 
 // --- FINAL SETUP ---
