@@ -1,13 +1,19 @@
+# This section tells Netlify's LIVE server how to build the site.
 [build]
   command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
   publish = "frontend/dist"
   functions = "backend/functions/"
 
-# This is the new rule. It's the most important one for React apps.
+# This rule is for API calls. It is specific, so it MUST come FIRST.
+# It tells Netlify to send any /api/... requests to our function.
 [[redirects]]
-  # The path to redirect from
-  from = "/*" 
-  # The path to redirect to
+  from = "/api/*"
+  to = "/.netlify/functions/index/:splat"
+  status = 200
+
+# This is the catch-all for the React app. It is general, so it MUST come LAST.
+# It tells Netlify that for any OTHER request, just serve the main app.
+[[redirects]]
+  from = "/*"
   to = "/index.html"
-  # The HTTP status code
-  status = 200 
+  status = 200
