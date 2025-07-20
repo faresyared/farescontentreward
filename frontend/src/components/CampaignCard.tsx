@@ -1,12 +1,12 @@
-// src/components/CampaignCard.tsx
+// frontend/src/components/CampaignCard.tsx
 
 import React from 'react';
 import { BookmarkIcon, PencilIcon } from '@heroicons/react/24/outline';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
-import { FaXTwitter } from "react-icons/fa6"; // Import the new X icon
+import { FaXTwitter } from "react-icons/fa6";
 import { useAuth } from '../context/AuthContext';
 
-// Define the Campaign type locally
+// The Campaign interface for the card
 export interface Campaign {
   _id: string;
   name: string;
@@ -17,9 +17,17 @@ export interface Campaign {
   status: 'Active' | 'Ended' | 'Soon' | 'Paused';
 }
 
+// Styles for the status badge
+const statusStyles = {
+  Active: 'bg-green-500/20 text-green-400 border-green-500/30',
+  Ended: 'bg-gray-500/20 text-gray-400 border-gray-500/30',
+  Soon: 'bg-blue-500/20 text-blue-400 border-blue-500/30',
+  Paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
+};
+
 const platformIcons = {
   YouTube: <FaYoutube className="text-red-600" />,
-  X: <FaXTwitter className="text-white" />, // <-- This is the change
+  X: <FaXTwitter className="text-white" />,
   Instagram: <FaInstagram className="text-pink-500" />,
   TikTok: <FaTiktok className="text-white" />,
 };
@@ -30,7 +38,7 @@ const CampaignCard: React.FC<{ campaign: Campaign; onCardClick: () => void; onEd
   const isDimmed = campaign.status === 'Ended' || campaign.status === 'Paused';
 
   const handleEdit = (e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevents the card click from firing
+    e.stopPropagation(); // Prevents the main card click
     onEditClick();
   };
 
@@ -46,7 +54,13 @@ const CampaignCard: React.FC<{ campaign: Campaign; onCardClick: () => void; onEd
       )}
       <img className="h-48 w-full object-cover" src={campaign.photo} alt={campaign.name} />
       <div className="p-4">
-        <h3 className="text-xl font-bold text-white mb-1 truncate">{campaign.name}</h3>
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-xl font-bold text-white truncate pr-2">{campaign.name}</h3>
+          {/* --- THIS IS THE NEW STATUS BADGE --- */}
+          <div className={`px-2 py-1 text-xs font-semibold rounded-full border whitespace-nowrap ${statusStyles[campaign.status]}`}>
+            {campaign.status}
+          </div>
+        </div>
         <p className="text-sm text-gray-400 mb-3">{campaign.type}</p>
         <div className="flex justify-between items-center">
           <div className="flex items-center space-x-2">
