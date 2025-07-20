@@ -1,4 +1,4 @@
-/ frontend/src/components/PostDetailsModal.tsx
+// frontend/src/components/PostDetailsModal.tsx
 
 import React, { useState, Fragment } from 'react';
 import axios from 'axios';
@@ -15,7 +15,7 @@ import { HandThumbUpIcon, FaceSmileIcon, PencilIcon, TrashIcon } from '@heroicon
 import { HandThumbUpIcon as HandThumbUpIconOutline, FaceSmileIcon as FaceSmileIconOutline } from '@heroicons/react/24/outline';
 import { Popover, Transition } from '@headlessui/react';
 
-const EMOJIS = ['👍', '😂', '😯', '😢'];
+const EMOJIS = ['👍', '😂', '🔥' , '😢' , '😯'];
 
 interface PostDetailsModalProps {
   post: Post | null;
@@ -155,13 +155,10 @@ const PostDetailsModal: React.FC<PostDetailsModalProps> = ({ post, isOpen, onClo
                 <div className="flex-grow bg-gray-800/50 p-2 rounded-lg">
                     <div className="flex justify-between items-center">
                         <span className="font-bold text-white text-sm">{comment.user.username}</span>
-                        {/* --- THIS IS THE KEY CHANGE --- */}
                         <div className="opacity-0 group-hover:opacity-100 flex gap-1 text-gray-400">
-                            {/* The Edit button is ONLY visible if the logged-in user is the author of the comment */}
                             {user?.id === comment.user._id && (
                                 <button onClick={() => startEditing(comment)} className="p-1 hover:text-white"><PencilIcon className="h-4 w-4"/></button>
                             )}
-                            {/* The Delete button is visible if the user is the author OR an admin */}
                             {(user?.id === comment.user._id || user?.role === 'admin') && (
                                 <button onClick={() => handleDeleteComment(comment._id)} className="p-1 hover:text-white"><TrashIcon className="h-4 w-4"/></button>
                             )}
