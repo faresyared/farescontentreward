@@ -8,12 +8,18 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 // --- DATABASE CONNECTION ---
-connectDB();
+// This pattern prevents multiple connections in a serverless environment
+let isConnected;
 async function connectDB() {
+    if (isConnected) {
+        console.log('=> using existing database connection');
+        return;
+    }
     try {
-        if (mongoose.connections[0].readyState) return;
+        console.log('=> using NEW database connection');
         await mongoose.connect(process.env.MONGODB_URI);
-        console.log('MongoDB Connection Successful.');
+        isConnected = true;
+        return;
     } catch (err) {
         console.error('MongoDB Connection Failed:', err);
     }
@@ -44,26 +50,43 @@ const CampaignSchema = new mongoose.Schema({
     status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon', required: true },
 }, { timestamps: true });
 
-// --- NEW POST SCHEMA ---
 const PostSchema = new mongoose.Schema({
-    author: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User', // This creates a link to the User model
-        required: true,
-    },
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
     imageUrl: { type: String },
     videoUrl: { type: String },
 }, { timestamps: true });
 
-
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
-const Post = mongoose.models.Post || mongoose.model('Post', PostSchema); // Define the Post model
+const Post = mongoose.models.Post || mongoose.model('Post', PostSchema);
 
 // --- MIDDLEWARE ---
-const auth = (req, res, next) => { /* ... full code below ... */ };
-const adminAuth = async (req, res, next) => { /* ... full code below ... */ };
+const auth = (req, res, next) => {
+    const token = req.header('x-auth-token');
+    if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.user = decoded.user;
+        next();
+    } catch (err) {
+        res.status(401).json({ msg: 'Token is not valid' });
+    }
+};
+
+const adminAuth = async (req, res, next) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) return res.status(404).json({ msg: 'User not found' });
+        if (user.role !== 'admin') {
+            return res.status(403).json({ msg: 'Admin resource. Access denied.' });
+        }
+        next();
+    } catch (err) {
+        console.error('Admin auth error:', err);
+        res.status(500).send('Server Error');
+    }
+};
 
 // --- EXPRESS APP & ROUTER ---
 const app = express();
@@ -74,77 +97,6 @@ const router = express.Router();
 // --- API ROUTES ---
 
 // AUTH ROUTES
-router.post('/users/signup', async (req, res) => { /* ... full code below ... */ });
-router.post('/users/signin', async (req, res) => { /* ... full code below ... */ });
-
-// CAMPAIGN ROUTES
-router.get('/campaigns', auth, async (req, res) => { /* ... full code below ... */ });
-router.get('/campaigns/:id', auth, async (req, res) => { /* ... full code below ... */ });
-router.post('/campaigns', [auth, adminAuth], async (req, res) => { /* ... full code below ... */ });
-router.put('/campaigns/:id', [auth, adminAuth], async (req, res) => { /* ... full code below ... */ });
-
-// --- NEW POST ROUTES ---
-
-// GET all posts
-router.get('/posts', auth, async (req, res) => {
-    try {
-        const posts = await Post.find()
-            .sort({ createdAt: -1 }) // Show newest first
-            .populate('author', 'username avatar'); // This is the magic: replace author ID with username and avatar
-        res.json(posts);
-    } catch (err) {
-        console.error("Error fetching posts:", err);
-        res.status(500).send('Server Error');
-    }
-});
-
-// POST a new post
-router.post('/posts', [auth, adminAuth], async (req, res) => {
-    try {
-        const newPost = new Post({
-            ...req.body,
-            author: req.user.id // Set the author to the currently logged-in admin
-        });
-        const post = await newPost.save();
-        // We need to populate the author details here as well to send back the complete object
-        const populatedPost = await Post.findById(post._id).populate('author', 'username avatar');
-        res.status(201).json(populatedPost);
-    } catch (err) {
-        console.error("Error creating post:", err);
-        res.status(500).send('Server Error');
-    }
-});
-
-
-// --- FINAL SETUP ---
-app.use('/api', router);
-const handler = serverless(app);
-
-module.exports.handler = async (event, context) => {
-    await connectDB();
-    return await handler(event, context);
-};
-
-// =========================================================================================
-// Full code for all middleware and routes for copy-paste convenience
-// =========================================================================================
-const auth_full = (req, res, next) => {
-    const token = req.header('x-auth-token');
-    if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = decoded.user;
-        next();
-    } catch (err) { res.status(401).json({ msg: 'Token is not valid' }); }
-};
-const adminAuth_full = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.user.id).select('-password');
-        if (!user) return res.status(404).json({ msg: 'User not found' });
-        if (user.role !== 'admin') return res.status(403).json({ msg: 'Admin resource. Access denied.' });
-        next();
-    } catch (err) { console.error('Admin auth error:', err); res.status(500).send('Server Error'); }
-};
 router.post('/users/signup', async (req, res) => {
     const { username, fullName, email, password } = req.body;
     try {
@@ -159,8 +111,12 @@ router.post('/users/signup', async (req, res) => {
         const payload = { user: { id: user.id, role: user.role } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.status(201).json({ token });
-    } catch (err) { console.error(err); res.status(500).send('Server error'); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
 });
+
 router.post('/users/signin', async (req, res) => {
     const { username, password } = req.body;
     try {
@@ -171,37 +127,90 @@ router.post('/users/signin', async (req, res) => {
         const payload = { user: { id: user.id, role: user.role } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.json({ token });
-    } catch (err) { console.error(err); res.status(500).send('Server error'); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server error');
+    }
 });
-router.get('/campaigns', auth_full, async (req, res) => {
+
+// CAMPAIGN ROUTES
+router.get('/campaigns', auth, async (req, res) => {
     try {
         const campaigns = await Campaign.find().sort({ status: 1, createdAt: -1 });
         res.json(campaigns);
-    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
 });
-router.get('/campaigns/:id', auth_full, async (req, res) => {
+
+router.get('/campaigns/:id', auth, async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);
         if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
         res.json(campaign);
-    } catch (err) { res.status(500).send('Server Error'); }
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
 });
-router.post('/campaigns', [auth_full, adminAuth_full], async (req, res) => {
+
+router.post('/campaigns', [auth, adminAuth], async (req, res) => {
     try {
         const newCampaign = new Campaign(req.body);
         const campaign = await newCampaign.save();
         res.status(201).json(campaign);
     } catch (err) {
-        if (err.code === 11000) { return res.status(400).json({ message: 'A campaign with this name already exists.' }); }
+        if (err.code === 11000) {
+            return res.status(400).json({ message: 'A campaign with this name already exists.' });
+        }
         console.error(err);
         res.status(500).send('Server Error');
     }
 });
-router.put('/campaigns/:id', [auth_full, adminAuth_full], async (req, res) => {
+
+router.put('/campaigns/:id', [auth, adminAuth], async (req, res) => {
     try {
         let campaign = await Campaign.findById(req.params.id);
         if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
         campaign = await Campaign.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
         res.json(campaign);
-    } catch (err) { res.status(500).send('Server Error'); }
+    } catch (err) {
+        res.status(500).send('Server Error');
+    }
 });
+
+// POST ROUTES
+router.get('/posts', auth, async (req, res) => {
+    try {
+        const posts = await Post.find().sort({ createdAt: -1 }).populate('author', 'username avatar');
+        res.json(posts);
+    } catch (err) {
+        console.error("Error fetching posts:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+router.post('/posts', [auth, adminAuth], async (req, res) => {
+    try {
+        const newPost = new Post({
+            ...req.body,
+            author: req.user.id
+        });
+        const post = await newPost.save();
+        const populatedPost = await Post.findById(post._id).populate('author', 'username avatar');
+        res.status(201).json(populatedPost);
+    } catch (err) {
+        console.error("Error creating post:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// --- FINAL SETUP ---
+app.use('/api', router);
+const handler = serverless(app);
+
+module.exports.handler = async (event, context) => {
+    context.callbackWaitsForEmptyEventLoop = false;
+    await connectDB();
+    return await handler(event, context);
+};
