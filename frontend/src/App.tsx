@@ -1,5 +1,3 @@
-// src/App.tsx
-
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import setAuthToken from './utils/setAuthToken';
@@ -13,12 +11,14 @@ import Campaigns from './pages/Campaigns';
 import Earnings from './pages/Earnings';
 import Profile from './pages/Profile';
 
-// This checks for the token every time the app loads
-if (localStorage.token) {
-  setAuthToken(localStorage.token);
-}
-
 function App() {
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      setAuthToken(token); // تعيين التوكن في axios headers
+    }
+  }, []);
+
   return (
     <Routes>
       {/* Auth Routes */}
