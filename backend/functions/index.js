@@ -6,6 +6,13 @@ const serverless = require('serverless-http');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const cloudinary = require('cloudinary').v2
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // --- DATABASE CONNECTION ---
 // We only want to connect once per instance
@@ -31,11 +38,17 @@ const UserSchema = new mongoose.Schema({
 
 const CampaignSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    photo: { type: String, required: true },
+    photo: { type: String, required: true }, // This will be a Cloudinary URL
     budget: { type: Number, required: true },
     rules: { type: String, required: true },
-    platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'] }],
-    status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon' },
+    assets: { type: String },
+    platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'], required: true }],
+    rewardPer1kViews: { type: Number },
+    type: { type: String, enum: ['UGC', 'Clipping', 'Faceless UGC'], required: true },
+    maxPayout: { type: Number },
+    minPayout: { type: Number },
+    category: { type: String, enum: ['Personal Brand', 'Entertainment', 'Music'], required: true },
+    status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon', required: true },
 }, { timestamps: true });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -121,6 +134,17 @@ router.get('/campaigns', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
+
+// GET a single campaign by ID
+router.get('/campaigns/:id', auth, async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+        if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+        res.json(campaign);
+    } catch (err) { res.status(500).send('Server Error'); }
+});
+
+
 router.post('/campaigns', [auth, adminAuth], async (req, res) => {
     try {
         const newCampaign = new Campaign(req.body);
@@ -133,6 +157,17 @@ router.post('/campaigns', [auth, adminAuth], async (req, res) => {
         console.error(err);
         res.status(500).send('Server Error');
     }
+});
+
+// PUT (update) an existing campaign
+router.put('/campaigns/:id', [auth, adminAuth], async (req, res) => {
+    try {
+        let campaign = await Campaign.findById(req.params.id);
+        if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+
+        campaign = await Campaign.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
+        res.json(campaign);
+    } catch (err) { res.status(500).send('Server Error'); }
 });
 
 // --- FINAL SETUP ---
