@@ -1,8 +1,8 @@
-// src/components/PostCard.tsx
+// frontend/src/components/PostCard.tsx
 
 import React from 'react';
-import { HandThumbUpIcon, ChatBubbleOvalLeftEllipsisIcon, FaceSmileIcon } from '@heroicons/react/24/outline';
-import { formatDistanceToNow } from 'date-fns'; // A library to format dates nicely
+import { HandThumbUpIcon, ChatBubbleOvalLeftEllipsisIcon, FaceSmileIcon, PhotoIcon } from '@heroicons/react/24/outline';
+import { formatDistanceToNow } from 'date-fns';
 
 // Define the structure of a post coming from the API
 export interface Post {
@@ -13,22 +13,28 @@ export interface Post {
     avatar: string;
   };
   content: string;
-  imageUrl?: string;
-  videoUrl?: string;
-  createdAt: string; // MongoDB provides createdAt
-  // We will add likes and comments later
+  imageUrls?: string[];
+  videoUrls?: string[];
+  createdAt: string;
 }
 
 interface PostCardProps {
   post: Post;
+  onPostClick: () => void; // A function to handle when the card is clicked
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onPostClick }) => {
   // Format the timestamp to be user-friendly (e.g., "about 5 hours ago")
   const timeAgo = formatDistanceToNow(new Date(post.createdAt), { addSuffix: true });
+  const firstImage = post.imageUrls?.[0];
+  const firstVideo = post.videoUrls?.[0];
+  const mediaCount = (post.imageUrls?.length || 0) + (post.videoUrls?.length || 0);
 
   return (
-    <div className="bg-gray-900/50 backdrop-blur-md rounded-2xl border border-gray-800/50 shadow-lg transition-all duration-300 hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1">
+    <div 
+      onClick={onPostClick} 
+      className="bg-gray-900/50 backdrop-blur-md rounded-2xl border border-gray-800/50 shadow-lg transition-all duration-300 hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1 cursor-pointer"
+    >
       <div className="p-5">
         {/* Post Header */}
         <div className="flex items-center mb-4">
@@ -42,15 +48,21 @@ const PostCard: React.FC<PostCardProps> = ({ post }) => {
         {/* Post Content */}
         <p className="text-gray-300 mb-4 whitespace-pre-wrap">{post.content}</p>
 
-        {/* Media (Image or Video) */}
-        {post.imageUrl && (
-          <img className="rounded-lg w-full max-h-[500px] object-cover" src={post.imageUrl} alt="Post content" />
-        )}
-        {post.videoUrl && (
-          <video className="rounded-lg w-full" controls>
-            <source src={post.videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+        {/* Media Preview */}
+        {(firstImage || firstVideo) && (
+          <div className="relative">
+            {firstImage ? (
+              <img className="rounded-lg w-full max-h-[500px] object-cover" src={firstImage} alt="Post content" />
+            ) : (
+              // Use a video tag that doesn't autoplay or have controls for the preview
+              <video className="rounded-lg w-full max-h-[500px] object-cover" src={firstVideo!} />
+            )}
+            {mediaCount > 1 && (
+              <div className="absolute top-2 right-2 bg-black/70 text-white text-xs font-bold py-1 px-2 rounded-full flex items-center">
+                <PhotoIcon className="h-4 w-4 mr-1"/> +{mediaCount - 1}
+              </div>
+            )}
+          </div>
         )}
       </div>
 

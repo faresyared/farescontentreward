@@ -8,22 +8,16 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 
 // --- DATABASE CONNECTION ---
-// This pattern prevents multiple connections in a serverless environment
 let isConnected;
 async function connectDB() {
-    if (isConnected) {
-        console.log('=> using existing database connection');
-        return;
-    }
+    if (isConnected) { console.log('=> using existing database connection'); return; }
     try {
         console.log('=> using NEW database connection');
         await mongoose.connect(process.env.MONGODB_URI);
         isConnected = true;
-        return;
-    } catch (err) {
-        console.error('MongoDB Connection Failed:', err);
-    }
+    } catch (err) { console.error('MongoDB Connection Failed:', err); }
 }
+
 
 // --- MONGOOSE SCHEMAS (MODELS) ---
 const UserSchema = new mongoose.Schema({
@@ -53,8 +47,8 @@ const CampaignSchema = new mongoose.Schema({
 const PostSchema = new mongoose.Schema({
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
-    imageUrl: { type: String },
-    videoUrl: { type: String },
+    imageUrls: { type: [String], default: [] }, // Changed to an array of strings
+    videoUrls: { type: [String], default: [] }, // Changed to an array of strings
 }, { timestamps: true });
 
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
@@ -192,20 +186,13 @@ router.get('/posts', auth, async (req, res) => {
 
 router.post('/posts', [auth, adminAuth], async (req, res) => {
     try {
-        const newPost = new Post({
-            ...req.body,
-            author: req.user.id
-        });
+        const newPost = new Post({ ...req.body, author: req.user.id });
         const post = await newPost.save();
         const populatedPost = await Post.findById(post._id).populate('author', 'username avatar');
         res.status(201).json(populatedPost);
-    } catch (err) {
-        console.error("Error creating post:", err);
-        res.status(500).send('Server Error');
-    }
+    } catch (err) { console.error("Error creating post:", err); res.status(500).send('Server Error'); }
 });
 
-// --- FINAL SETUP ---
 app.use('/api', router);
 const handler = serverless(app);
 
