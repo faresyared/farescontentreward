@@ -1,17 +1,16 @@
 // frontend/src/components/AddCampaignForm.tsx
 
-import React, { useState, useEffect } from 'react'; // Import useEffect
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { FullCampaign } from './CampaignDetailsModal';
 
-// This is the clean, default state for a new campaign
 const initialState = {
   name: '', photo: '', budget: 0, rules: '', assets: '',
   platforms: [], rewardPer1kViews: 0, type: 'UGC',
   maxPayout: 0, minPayout: 0, category: 'Entertainment', status: 'Soon',
 };
 
-const cloudinaryAxios = axios.create(); // Create a clean instance for Cloudinary
+const cloudinaryAxios = axios.create();
 
 interface AddCampaignFormProps {
   onSuccess: (campaign: FullCampaign) => void;
@@ -23,12 +22,11 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   const [formData, setFormData] = useState(initialState);
   const [error, setError] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // THIS IS THE FIX. This hook watches the 'campaignToEdit' prop.
-  // If it changes, we FORCE the form's state to reset correctly.
   useEffect(() => {
+    console.log("FORM STATE RESETTING. campaignToEdit is:", campaignToEdit ? campaignToEdit.name : 'null');
     if (campaignToEdit) {
-      // If we are editing, fill the form with that specific campaign's data
       setFormData({
         name: campaignToEdit.name,
         photo: campaignToEdit.photo,
@@ -44,10 +42,9 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
         status: campaignToEdit.status,
       });
     } else {
-      // If we are adding a NEW campaign, reset the form to be completely empty
       setFormData(initialState);
     }
-  }, [campaignToEdit]); // This logic runs every time the modal is opened for a new or different campaign
+  }, [campaignToEdit]);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -88,8 +85,18 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (isSubmitting) return;
     setError('');
-    if (!formData.photo) { setError('A campaign photo is required. Please upload an image.'); return; }
+    setIsSubmitting(true);
+
+    if (!formData.photo) {
+      setError('A campaign photo is required. Please upload an image.');
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log("--- FRONTEND: SUBMITTING CAMPAIGN DATA ---", formData);
+
     try {
       let res;
       if (campaignToEdit) {
@@ -100,6 +107,8 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
       onSuccess(res.data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to save campaign.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -179,8 +188,8 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
       {error && <p className="text-red-400 text-sm text-center py-2">{error}</p>}
       <div className="flex justify-end pt-4 gap-3">
         <button type="button" onClick={onClose} className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
-        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isUploading}>
-          {isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign')}
+        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg disabled:bg-gray-500 disabled:cursor-not-allowed" disabled={isUploading || isSubmitting}>
+          {isSubmitting ? 'Saving...' : (isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign'))}
         </button>
       </div>
     </form>

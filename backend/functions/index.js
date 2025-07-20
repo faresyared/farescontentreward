@@ -6,16 +6,8 @@ const serverless = require('serverless-http');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
-const cloudinary = require('cloudinary').v2
-
-cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET,
-});
 
 // --- DATABASE CONNECTION ---
-// We only want to connect once per instance
 connectDB();
 async function connectDB() {
     try {
@@ -38,7 +30,7 @@ const UserSchema = new mongoose.Schema({
 
 const CampaignSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
-    photo: { type: String, required: true }, // This will be a Cloudinary URL
+    photo: { type: String, required: true },
     budget: { type: Number, required: true },
     rules: { type: String, required: true },
     assets: { type: String },
@@ -55,7 +47,6 @@ const User = mongoose.models.User || mongoose.model('User', UserSchema);
 const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
 
 // --- MIDDLEWARE ---
-// THIS IS THE FIX. 'auth' and 'adminAuth' are now correctly defined before they are used.
 const auth = (req, res, next) => {
     const token = req.header('x-auth-token');
     if (!token) return res.status(401).json({ msg: 'No token, authorization denied' });
@@ -135,7 +126,24 @@ router.get('/campaigns', auth, async (req, res) => {
     }
 });
 
-// GET a single campaign by ID
+router.post('/campaigns', [auth, adminAuth], async (req, res) => {
+    console.log("--- BACKEND: CREATE CAMPAIGN ROUTE HIT ---");
+    console.log("--- BACKEND: RECEIVED DATA ---", req.body);
+    try {
+        const newCampaign = new Campaign(req.body);
+        const campaign = await newCampaign.save();
+        console.log("--- BACKEND: CAMPAIGN SAVED SUCCESSFULLY ---", campaign.name);
+        res.status(201).json(campaign);
+    } catch (err) {
+        if (err.code === 11000) {
+            console.error("--- BACKEND: DUPLICATE NAME ERROR ---", req.body.name);
+            return res.status(400).json({ message: 'A campaign with this name already exists.' });
+        }
+        console.error("--- BACKEND: GENERIC ERROR ---", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 router.get('/campaigns/:id', auth, async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);
@@ -144,27 +152,10 @@ router.get('/campaigns/:id', auth, async (req, res) => {
     } catch (err) { res.status(500).send('Server Error'); }
 });
 
-
-router.post('/campaigns', [auth, adminAuth], async (req, res) => {
-    try {
-        const newCampaign = new Campaign(req.body);
-        const campaign = await newCampaign.save();
-        res.status(201).json(campaign);
-    } catch (err) {
-        if (err.code === 11000) {
-            return res.status(400).json({ message: 'A campaign with this name already exists.' });
-        }
-        console.error(err);
-        res.status(500).send('Server Error');
-    }
-});
-
-// PUT (update) an existing campaign
 router.put('/campaigns/:id', [auth, adminAuth], async (req, res) => {
     try {
         let campaign = await Campaign.findById(req.params.id);
         if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
-
         campaign = await Campaign.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true });
         res.json(campaign);
     } catch (err) { res.status(500).send('Server Error'); }
@@ -175,7 +166,6 @@ app.use('/api', router);
 const handler = serverless(app);
 
 module.exports.handler = async (event, context) => {
-    // This ensures the DB connection is ready before any request is handled
     await connectDB();
     return await handler(event, context);
 };
