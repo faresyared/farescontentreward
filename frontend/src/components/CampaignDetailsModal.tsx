@@ -11,10 +11,7 @@ export interface FullCampaign {
   photo: string;
   budget: number;
   rules: string;
-  assets?: {
-    name?: string;
-    url?: string;
-  };
+  assets?: { name?: string; url?: string; };
   platforms: ('YouTube' | 'X' | 'Instagram' | 'TikTok')[];
   rewardPer1kViews?: number;
   type: 'UGC' | 'Clipping' | 'Faceless UGC';
@@ -31,9 +28,7 @@ const statusStyles = {
   Paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30',
 };
 
-const platformIcons = {
-  YouTube: <FaYoutube />, X: <FaXTwitter />, Instagram: <FaInstagram />, TikTok: <FaTiktok />,
-};
+const platformIcons = { YouTube: <FaYoutube />, X: <FaXTwitter />, Instagram: <FaInstagram />, TikTok: <FaTiktok /> };
 
 const DetailItem: React.FC<{ label: string; value?: string | number }> = ({ label, value }) => (
   <div>
@@ -48,7 +43,11 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={campaign.name}>
       <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 text-gray-300">
-        <img src={campaign.photo} alt={campaign.name} className="w-full h-64 object-cover rounded-lg" />
+        {/* --- THIS IS THE KEY VISUAL CHANGE --- */}
+        <div className="w-full h-64 bg-black rounded-lg flex items-center justify-center">
+          <img src={campaign.photo} alt={campaign.name} className="max-w-full max-h-full object-contain" />
+        </div>
+        
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2">Campaign Details</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
           <DetailItem label="Budget" value={`$${campaign.budget}`} />
@@ -64,6 +63,7 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
           <DetailItem label="Min Payout" value={campaign.minPayout ? `$${campaign.minPayout}` : 'N/A'} />
           <DetailItem label="Max Payout" value={campaign.maxPayout ? `$${campaign.maxPayout}` : 'N/A'} />
         </div>
+        
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Platforms</h3>
         <div className="flex items-center space-x-4">
             {campaign.platforms.map(p => (
@@ -72,17 +72,14 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
                 </div>
             ))}
         </div>
+
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Rules</h3>
         <p className="whitespace-pre-wrap">{campaign.rules}</p>
+        
         {campaign.assets && campaign.assets.url && (
             <>
                 <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 pt-4">Assets</h3>
-                <a
-                    href={campaign.assets.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-400 hover:underline font-semibold"
-                >
+                <a href={campaign.assets.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-semibold">
                     {campaign.assets.name || 'Download Assets'}
                 </a>
             </>

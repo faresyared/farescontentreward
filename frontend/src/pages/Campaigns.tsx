@@ -15,9 +15,10 @@ const Campaigns = () => {
   const isAdmin = user?.role === 'admin';
 
   const [campaigns, setCampaigns] = useState<FullCampaign[]>([]);
+  const [savedCampaignIds, setSavedCampaignIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [platformFilter, setPlatformFilter] = useState('All Platforms');
   const [typeFilter, setTypeFilter] = useState('All Types');
@@ -26,10 +27,9 @@ const Campaigns = () => {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [selectedCampaign, setSelectedCampaign] = useState<FullCampaign | null>(null);
   const [campaignToEdit, setCampaignToEdit] = useState<FullCampaign | null>(null);
-
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<FullCampaign | null>(null);
-
+  
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
@@ -37,15 +37,27 @@ const Campaigns = () => {
       if (searchQuery) params.append('search', searchQuery);
       if (platformFilter !== 'All Platforms') params.append('platform', platformFilter);
       if (typeFilter !== 'All Types') params.append('type', typeFilter);
-      
       const res = await axios.get('/api/campaigns', { params });
       setCampaigns(res.data);
     } catch (err) {
-      setError('Failed to load campaigns. Please try again later.');
+      setError('Failed to load campaigns.');
     } finally {
       setLoading(false);
     }
   }, [searchQuery, platformFilter, typeFilter]);
+  
+  useEffect(() => {
+    const fetchSaved = async () => {
+      try {
+        const res = await axios.get('/api/users/me/saved');
+        const savedIds = new Set(res.data.map((c: FullCampaign) => c._id));
+        setSavedCampaignIds(savedIds);
+      } catch (err) {
+        console.error("Could not fetch saved campaigns", err);
+      }
+    };
+    fetchSaved();
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -53,7 +65,7 @@ const Campaigns = () => {
     }, 500);
     return () => clearTimeout(timer);
   }, [fetchCampaigns]);
-
+  
   const handleFormSuccess = (updatedCampaign: FullCampaign) => {
     if (campaignToEdit) {
       setCampaigns(campaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c));
@@ -67,12 +79,8 @@ const Campaigns = () => {
   const openAddModal = () => { setCampaignToEdit(null); setIsFormModalOpen(true); };
   const openEditModal = (campaign: FullCampaign) => { setCampaignToEdit(campaign); setIsFormModalOpen(true); };
   const openDetailsModal = (campaign: FullCampaign) => { setSelectedCampaign(campaign); setIsDetailsModalOpen(true); };
-
-  const openDeleteModal = (campaign: FullCampaign) => {
-    setCampaignToDelete(campaign);
-    setIsDeleteModalOpen(true);
-  };
-
+  const openDeleteModal = (campaign: FullCampaign) => { setCampaignToDelete(campaign); setIsDeleteModalOpen(true); };
+  
   const handleDeleteCampaign = async () => {
     if (!campaignToDelete) return;
     try {
@@ -82,11 +90,26 @@ const Campaigns = () => {
       setCampaignToDelete(null);
     } catch (err) {
       console.error("Failed to delete campaign", err);
-      // You can set an error state here to show in the UI
-      setIsDeleteModalOpen(false);
     }
   };
 
+  const handleSaveToggle = async (campaignId: string) => {
+    const originalSavedIds = new Set(savedCampaignIds);
+    const newSavedCampaignIds = new Set(savedCampaignIds);
+    if (newSavedCampaignIds.has(campaignId)) {
+      newSavedCampaignIds.delete(campaignId);
+    } else {
+      newSavedCampaignIds.add(campaignId);
+    }
+    setSavedCampaignIds(newSavedCampaignIds);
+    try {
+      await axios.put(`/api/users/me/save/${campaignId}`);
+    } catch (err) {
+      setError('Failed to update saved status.');
+      setSavedCampaignIds(originalSavedIds);
+    }
+  };
+  
   const renderContent = () => {
     if (loading) return <p className="text-center text-gray-400">Loading...</p>;
     if (error) return <p className="text-center text-red-500">{error}</p>;
@@ -97,15 +120,17 @@ const Campaigns = () => {
           <CampaignCard
             key={campaign._id}
             campaign={campaign}
+            isSaved={savedCampaignIds.has(campaign._id)}
             onCardClick={() => openDetailsModal(campaign)}
             onEditClick={() => openEditModal(campaign)}
             onDeleteClick={() => openDeleteModal(campaign)}
+            onSaveClick={() => handleSaveToggle(campaign._id)}
           />
         ))}
       </div>
     );
   };
-
+  
   return (
     <>
       <Modal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} title={campaignToEdit ? "Edit Campaign" : "Add New Campaign"}>
