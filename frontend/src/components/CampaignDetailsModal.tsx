@@ -1,24 +1,23 @@
 // frontend/src/components/CampaignDetailsModal.tsx
 
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import Modal from './Modal';
+import { useAuth } from '../context/AuthContext';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 
 export interface FullCampaign {
-  _id: string;
-  name: string;
-  photo: string;
-  budget: number;
-  rules: string;
+  _id: string; name: string; photo: string; budget: number; rules: string;
   assets?: { name?: string; url?: string; };
   platforms: ('YouTube' | 'X' | 'Instagram' | 'TikTok')[];
-  rewardPer1kViews?: number;
-  type: 'UGC' | 'Clipping' | 'Faceless UGC';
-  maxPayout?: number;
-  minPayout?: number;
-  category: 'Personal Brand' | 'Entertainment' | 'Music';
+  rewardPer1kViews?: number; type: 'UGC' | 'Clipping' | 'Faceless UGC';
+  maxPayout?: number; minPayout?: number; category: 'Personal Brand' | 'Entertainment' | 'Music';
   status: 'Active' | 'Ended' | 'Soon' | 'Paused';
+  isPrivate: boolean;
+  participants: string[]; // Will just be an array of user IDs
+  waitlist: string[];
 }
 
 const statusStyles = {
@@ -38,16 +37,48 @@ const DetailItem: React.FC<{ label: string; value?: string | number }> = ({ labe
 );
 
 const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; onClose: () => void; }> = ({ campaign, isOpen, onClose }) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
   if (!isOpen) return null;
 
+  const isParticipant = user ? campaign.participants.includes(user.id) : false;
+  const isOnWaitlist = user ? campaign.waitlist.includes(user.id) : false;
+
+  const handleJoin = async () => {
+    try {
+        await axios.post(`/api/campaigns/${campaign._id}/join`);
+        // For now, we just close the modal. Later, this will redirect.
+        onClose(); 
+        // We can add a success message here in the future.
+    } catch (err) {
+        console.error("Failed to join campaign", err);
+    }
+  };
+
+  const renderJoinButton = () => {
+    if (isParticipant) {
+        return <button className="w-full bg-green-600 text-white font-bold py-3 rounded-lg">View Campaign Page</button>;
+    }
+    if (isOnWaitlist) {
+        return <button className="w-full bg-yellow-600 text-white font-bold py-3 rounded-lg cursor-not-allowed">Pending Approval</button>;
+    }
+    if (campaign.isPrivate) {
+        return <button onClick={handleJoin} className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg transition-colors">Join Waitlist</button>;
+    }
+    return <button onClick={handleJoin} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 rounded-lg transition-colors">Join Campaign</button>;
+  };
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={campaign.name}>
+  <Modal isOpen={isOpen} onClose={onClose} title={campaign.name}>
       <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2 text-gray-300">
-        {/* --- THIS IS THE KEY VISUAL CHANGE --- */}
         <div className="w-full h-64 bg-black rounded-lg flex items-center justify-center">
           <img src={campaign.photo} alt={campaign.name} className="max-w-full max-h-full object-contain" />
         </div>
-        
+
+        <div className="pt-2">
+            {renderJoinButton()}
+        </div>
         <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2">Campaign Details</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 items-center">
           <DetailItem label="Budget" value={`$${campaign.budget}`} />

@@ -35,6 +35,7 @@ const Campaigns = () => {
 
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
+
     try {
       const params = new URLSearchParams();
       if (searchQuery) params.append('search', searchQuery);
@@ -56,7 +57,6 @@ const Campaigns = () => {
     return () => clearTimeout(timer);
   }, [fetchCampaigns]);
   
-  // --- THIS IS THE NEW LOGIC TO OPEN THE MODAL FROM A URL ---
   useEffect(() => {
     const campaignIdToView = searchParams.get('view');
     if (campaignIdToView && campaigns.length > 0) {
@@ -64,7 +64,6 @@ const Campaigns = () => {
       if (campaignToShow) {
         setSelectedCampaign(campaignToShow);
         setIsDetailsModalOpen(true);
-        // Clear the search param so it doesn't re-open on refresh
         setSearchParams({}, { replace: true });
       }
     }
@@ -96,20 +95,16 @@ const Campaigns = () => {
   };
   
   const renderContent = () => {
-    if (loading) return <p className="text-center text-gray-400">Loading...</p>;
-    if (error) return <p className="text-center text-red-500">{error}</p>;
-    if (campaigns.length === 0) return <p className="text-center text-gray-400">No campaigns found.</p>;
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p>{error}</p>;
+    if (campaigns.length === 0) return <p>No campaigns found.</p>;
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {campaigns.map((campaign) => (
           <CampaignCard
-            key={campaign._id}
-            campaign={campaign}
-            isSaved={savedCampaignIds.has(campaign._id)}
-            onCardClick={() => openDetailsModal(campaign)}
-            onEditClick={() => openEditModal(campaign)}
-            onDeleteClick={() => openDeleteModal(campaign)}
-            onSaveClick={() => toggleSaveCampaign(campaign._id)}
+            key={campaign._id} campaign={campaign} isSaved={savedCampaignIds.has(campaign._id)}
+            onCardClick={() => openDetailsModal(campaign)} onEditClick={() => openEditModal(campaign)}
+            onDeleteClick={() => openDeleteModal(campaign)} onSaveClick={() => toggleSaveCampaign(campaign._id)}
           />
         ))}
       </div>
@@ -122,15 +117,17 @@ const Campaigns = () => {
         <AddCampaignForm onSuccess={handleFormSuccess} onClose={() => setIsFormModalOpen(false)} campaignToEdit={campaignToEdit} />
       </Modal>
       {selectedCampaign && (
-        <CampaignDetailsModal campaign={selectedCampaign} isOpen={isDetailsModalOpen} onClose={() => setIsDetailsModalOpen(false)} />
+  {selectedCampaign && (
+        <CampaignDetailsModal 
+          campaign={selectedCampaign} 
+          isOpen={isDetailsModalOpen} 
+          onClose={() => {
+            setIsDetailsModalOpen(false);
+            fetchCampaigns(); // Refetch campaigns when modal is closed
+          }} 
+        />
       )}
-      <ConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDeleteCampaign}
-        title="Delete Campaign"
-        message={`Are you sure you want to permanently delete the "${campaignToDelete?.name}" campaign? This action cannot be undone.`}
-      />
+  <ConfirmationModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={handleDeleteCampaign} title="Delete Campaign" message={`Are you sure you want to permanently delete "${campaignToDelete?.name}"?`} />
       <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-white">Campaigns</h1>

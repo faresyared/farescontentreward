@@ -44,6 +44,9 @@ const CampaignSchema = new mongoose.Schema({
     minPayout: { type: Number },
     category: { type: String, enum: ['Personal Brand', 'Entertainment', 'Music'], required: true },
     status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon', required: true },
+    isPrivate: { type: Boolean, default: false },
+    participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
 }, { timestamps: true });
 
 const ReactionSchema = new mongoose.Schema({
@@ -301,6 +304,41 @@ router.delete('/campaigns/:id', [auth, adminAuth], async (req, res) => {
         console.error("Error deleting campaign:", err);
         res.status(500).send('Server Error');
     }
+});
+
+// --- NEW CAMPAIGN MEMBERSHIP ROUTES ---
+router.post('/campaigns/:id/join', auth, async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+        const userId = req.user.id;
+        if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+        
+        if (campaign.participants.includes(userId) || campaign.waitlist.includes(userId)) {
+            return res.status(400).json({ msg: 'User already in campaign or on waitlist' });
+        }
+        
+        if (campaign.isPrivate) {
+            campaign.waitlist.push(userId);
+        } else {
+            campaign.participants.push(userId);
+        }
+        await campaign.save();
+        res.json(campaign);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+});
+
+router.post('/campaigns/:id/approve/:userId', [auth, adminAuth], async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+        if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+        
+        const userToApprove = req.params.userId;
+        // Move user from waitlist to participants
+        campaign.waitlist.pull(userToApprove);
+        campaign.participants.push(userToApprove);
+        await campaign.save();
+        res.json(campaign);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
 });
 
 // POST ROUTES
