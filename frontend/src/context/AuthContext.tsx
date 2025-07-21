@@ -6,12 +6,11 @@ import { jwtDecode } from 'jwt-decode';
 import setAuthToken from '../utils/setAuthToken';
 import { FullCampaign } from '../components/CampaignDetailsModal';
 
-// --- THIS IS THE KEY CHANGE ---
 interface AuthUser {
   id: string;
   role: 'user' | 'admin';
-  username: string; // Add username
-  avatar: string;   // Add avatar
+  username: string;
+  avatar: string;
 }
 
 interface AuthContextType {
@@ -20,8 +19,8 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
-  savedCampaigns: FullCampaign[];
-  toggleSaveCampaign: (campaignId: string) => Promise<void>;
+  joinedCampaigns: FullCampaign[]; // Renamed from savedCampaigns
+  fetchJoinedCampaigns: () => Promise<void>; // Expose the fetch function
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -30,15 +29,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [savedCampaigns, setSavedCampaigns] = useState<FullCampaign[]>([]);
+  const [joinedCampaigns, setJoinedCampaigns] = useState<FullCampaign[]>([]);
 
-  const fetchSavedCampaigns = useCallback(async () => {
+  const fetchJoinedCampaigns = useCallback(async () => {
     if (localStorage.token) {
         try {
-            const res = await axios.get('/api/users/me/saved');
-            setSavedCampaigns(res.data);
+            // Call the new backend route
+            const res = await axios.get('/api/users/me/joined');
+            setJoinedCampaigns(res.data);
         } catch (err) {
-            console.error("Could not fetch saved campaigns on load", err);
+            console.error("Could not fetch joined campaigns", err);
         }
     }
   }, []);
@@ -54,22 +54,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setToken(storedToken);
           setUser(decodedToken.user);
           setAuthToken(storedToken);
-          fetchSavedCampaigns();
+          fetchJoinedCampaigns();
         }
       } catch (error) {
         localStorage.removeItem('token');
       }
     }
     setLoading(false);
-  }, [fetchSavedCampaigns]);
+  }, [fetchJoinedCampaigns]);
 
   const login = (newToken: string) => {
     localStorage.setItem('token', newToken);
     const decodedToken: { user: AuthUser } = jwtDecode(newToken);
     setToken(newToken);
-    setUser(decodedToken.user); // The user object from the new token is now complete
+    setUser(decodedToken.user);
     setAuthToken(newToken);
-    fetchSavedCampaigns();
+    fetchJoinedCampaigns();
   };
 
   const logout = () => {
@@ -77,20 +77,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setAuthToken(null);
-    setSavedCampaigns([]);
-  };
-
-  const toggleSaveCampaign = async (campaignId: string) => {
-    try {
-        await axios.put(`/api/users/me/save/${campaignId}`);
-        fetchSavedCampaigns();
-    } catch (err) {
-        console.error("Failed to toggle save campaign", err);
-    }
+    setJoinedCampaigns([]); // Clear joined campaigns on logout
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, loading, savedCampaigns, toggleSaveCampaign }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading, joinedCampaigns, fetchJoinedCampaigns }}>
       {!loading && children}
     </AuthContext.Provider>
   );

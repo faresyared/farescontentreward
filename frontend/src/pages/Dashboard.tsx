@@ -1,17 +1,15 @@
 // frontend/src/pages/Dashboard.tsx
 
-import React, { Fragment, useState, useEffect } from 'react';
+import React, { Fragment } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import axios from 'axios';
 import Navbar from '../components/Navbar';
 import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
-import { FullCampaign } from '../components/CampaignDetailsModal';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-  const { savedCampaigns } = useAuth();
+  const { joinedCampaigns } = useAuth(); // Get the live list from our context
 
   return (
     <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
@@ -27,22 +25,20 @@ const Dashboard = () => {
         <aside className="hidden lg:block fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-black/10 border-r border-gray-800/50 p-4">
           <div className="flex items-center gap-2 text-gray-400 mb-4">
               <BookmarkIcon className="h-6 w-6 text-red-500" />
-              <h2 className="text-lg font-bold">Saved Campaigns</h2>
+              <h2 className="text-lg font-bold">Joined Campaigns</h2>
           </div>
           <div className="mt-4 space-y-1">
-            {savedCampaigns.length > 0 ? (
-              savedCampaigns.map(campaign => (
+            {joinedCampaigns.length > 0 ? (
+              joinedCampaigns.map(campaign => (
                 <SavedCampaignItem key={campaign._id} campaign={campaign} />
               ))
             ) : (
-              <p className="text-gray-500 text-sm text-center mt-8">You have no saved campaigns.</p>
+              <p className="text-gray-500 text-sm text-center mt-8">You haven't joined any campaigns yet.</p>
             )}
           </div>
         </aside>
         
-        {/* --- THIS IS THE KEY LAYOUT FIX --- */}
         <main className="flex-grow lg:pl-64">
-          {/* We add pb-20 (padding-bottom: 5rem) to create space for the mobile nav */}
           <div className="p-4 sm:p-6 lg:p-8 pb-20">
             <Outlet />
           </div>
@@ -74,15 +70,15 @@ const Dashboard = () => {
               <Popover.Panel className="absolute right-0 mt-2 w-72 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
                   <div className="flex items-center gap-2 text-gray-400 mb-2">
                       <BookmarkIcon className="h-6 w-6 text-red-500" />
-                      <h2 className="text-lg font-bold">Saved Campaigns</h2>
+                      <h2 className="text-lg font-bold">Joined Campaigns</h2>
                   </div>
                   <div className="mt-4 space-y-1">
-                    {savedCampaigns.length > 0 ? (
-                        savedCampaigns.map(campaign => (
+                    {joinedCampaigns.length > 0 ? (
+                        joinedCampaigns.map(campaign => (
                             <SavedCampaignItem key={campaign._id} campaign={campaign} />
                         ))
                     ) : (
-                        <p className="text-gray-500 text-sm text-center mt-4">You have no saved campaigns.</p>
+                        <p className="text-gray-500 text-sm text-center mt-4">You haven't joined any campaigns yet.</p>
                     )}
                   </div>
               </Popover.Panel>

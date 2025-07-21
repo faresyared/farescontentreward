@@ -1,6 +1,6 @@
 // frontend/src/pages/Campaigns.tsx
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import CampaignCard from '../components/CampaignCard';
@@ -12,28 +12,26 @@ import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
 const Campaigns = () => {
-  const { user, savedCampaigns, toggleSaveCampaign } = useAuth();
+  const { user, fetchJoinedCampaigns } = useAuth(); // Get the refetch function
   const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const [campaigns, setCampaigns] = useState<FullCampaign[]>([]);
   const [loading, setLoading] = useState(true);
-  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
-  const [selectedCampaign, setSelectedCampaign] = useState<FullCampaign | null>(null);
-  
-  // Other states are the same
   const [error, setError] = useState<string | null>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [platformFilter, setPlatformFilter] = useState('All Platforms');
   const [typeFilter, setTypeFilter] = useState('All Types');
+
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [selectedCampaign, setSelectedCampaign] = useState<FullCampaign | null>(null);
   const [campaignToEdit, setCampaignToEdit] = useState<FullCampaign | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<FullCampaign | null>(null);
   
-  const savedCampaignIds = useMemo(() => new Set(savedCampaigns.map(c => c._id)), [savedCampaigns]);
-
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
@@ -60,23 +58,25 @@ const Campaigns = () => {
     if (campaignIdToView && campaigns.length > 0) {
       const campaignToShow = campaigns.find(c => c._id === campaignIdToView);
       if (campaignToShow) {
-        handleCardClick(campaignToShow); // Use the new smart click handler
+        handleCardClick(campaignToShow);
         setSearchParams({}, { replace: true });
       }
     }
   }, [campaigns, searchParams, setSearchParams]);
 
-  // --- THIS IS THE NEW "SMART" CLICK HANDLER ---
   const handleCardClick = (campaign: FullCampaign) => {
     const isParticipant = user ? campaign.participants.includes(user.id) : false;
     if (isParticipant) {
-      // If they are a participant, go directly to the page
       navigate(`/dashboard/campaign/${campaign._id}`);
     } else {
-      // Otherwise, open the details modal to let them join
       setSelectedCampaign(campaign);
       setIsDetailsModalOpen(true);
     }
+  };
+
+  const handleJoinSuccess = () => {
+    fetchCampaigns(); // Refetch the list of all campaigns
+    fetchJoinedCampaigns(); // Refetch the user's joined campaigns for the sidebar
   };
 
   const handleFormSuccess = (updatedCampaign: FullCampaign) => { if (campaignToEdit) { setCampaigns(campaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c)); } else { setCampaigns([updatedCampaign, ...campaigns]); } setIsFormModalOpen(false); setCampaignToEdit(null); };
@@ -95,11 +95,9 @@ const Campaigns = () => {
           <CampaignCard
             key={campaign._id}
             campaign={campaign}
-            isSaved={savedCampaignIds.has(campaign._id)}
-            onCardClick={() => handleCardClick(campaign)} // Use the new smart handler
+            onCardClick={() => handleCardClick(campaign)}
             onEditClick={() => openEditModal(campaign)}
             onDeleteClick={() => openDeleteModal(campaign)}
-            onSaveClick={() => toggleSaveCampaign(campaign._id)}
           />
         ))}
       </div>
@@ -116,7 +114,7 @@ const Campaigns = () => {
           campaign={selectedCampaign} 
           isOpen={isDetailsModalOpen} 
           onClose={() => setIsDetailsModalOpen(false)} 
-          onJoinSuccess={fetchCampaigns} // Refetch campaigns after joining
+          onJoinSuccess={handleJoinSuccess}
         />
       )}
       <ConfirmationModal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)} onConfirm={handleDeleteCampaign} title="Delete Campaign" message={`Are you sure you want to permanently delete the "${campaignToDelete?.name}"?`} />

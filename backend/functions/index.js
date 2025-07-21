@@ -25,7 +25,6 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     avatar: { type: String, default: 'https://i.pravatar.cc/150' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
-    savedCampaigns: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Campaign' }] // Array of saved campaign IDs
 }, { timestamps: true });
 
 const CampaignSchema = new mongoose.Schema({
@@ -202,35 +201,13 @@ router.put('/users/me', auth, async (req, res) => {
     }
 });
 
-// GET the user's saved campaigns
-router.get('/users/me/saved', auth, async (req, res) => {
+// --- NEW ROUTE: GET JOINED CAMPAIGNS ---
+router.get('/users/me/joined', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).populate('savedCampaigns');
-        if (!user) return res.status(404).json({ msg: 'User not found' });
-        res.json(user.savedCampaigns);
+        const campaigns = await Campaign.find({ participants: req.user.id }).sort({ name: 1 });
+        res.json(campaigns);
     } catch (err) {
-        console.error("Error fetching saved campaigns:", err);
-        res.status(500).send('Server Error');
-    }
-});
-// SAVE / UNSAVE a campaign
-router.put('/users/me/save/:campaignId', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.user.id);
-        const campaignId = req.params.campaignId;
-
-        const isSaved = user.savedCampaigns.includes(campaignId);
-        if (isSaved) {
-            // If already saved, unsave it
-            user.savedCampaigns.pull(campaignId);
-        } else {
-            // If not saved, save it
-            user.savedCampaigns.push(campaignId);
-        }
-        await user.save();
-        res.json(user.savedCampaigns); // Send back the updated list of IDs
-    } catch (err) {
-        console.error("Error saving campaign:", err);
+        console.error("Error fetching joined campaigns:", err);
         res.status(500).send('Server Error');
     }
 });

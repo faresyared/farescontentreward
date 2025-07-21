@@ -2,8 +2,6 @@
 
 import React from 'react';
 import { PencilIcon, TrashIcon } from '@heroicons/react/24/outline';
-import { BookmarkIcon as BookmarkIconSolid } from '@heroicons/react/24/solid';
-import { BookmarkIcon as BookmarkIconOutline } from '@heroicons/react/24/outline';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 import { useAuth } from '../context/AuthContext';
@@ -34,24 +32,21 @@ const platformIcons = {
 
 const CampaignCard: React.FC<{
   campaign: Campaign;
-  isSaved: boolean;
   onCardClick: () => void;
   onEditClick: () => void;
   onDeleteClick: () => void;
-  onSaveClick: () => void;
-}> = ({ campaign, isSaved, onCardClick, onEditClick, onDeleteClick, onSaveClick }) => {
+}> = ({ campaign, onCardClick, onEditClick, onDeleteClick }) => {
   const { user } = useAuth();
   const isAdmin = user?.role === 'admin';
   const isDimmed = campaign.status === 'Ended' || campaign.status === 'Paused';
 
   const handleEdit = (e: React.MouseEvent) => { e.stopPropagation(); onEditClick(); };
   const handleDelete = (e: React.MouseEvent) => { e.stopPropagation(); onDeleteClick(); };
-  const handleSave = (e: React.MouseEvent) => { e.stopPropagation(); onSaveClick(); };
 
   return (
     <div onClick={onCardClick} className={`bg-gray-900/50 rounded-2xl border border-gray-800/50 overflow-hidden group transition-all duration-300 relative ${isDimmed ? 'opacity-60' : 'cursor-pointer hover:shadow-red-500/20 hover:border-red-500/30 transform hover:-translate-y-1'}`}>
       <div className="absolute top-2 right-2 z-10 flex gap-2">
-        {isAdmin && !isDimmed && (
+        {isAdmin && (
           <>
             <button onClick={handleDelete} className="p-2 bg-black/50 rounded-full text-gray-300 hover:bg-red-800 hover:text-white transition-colors">
               <TrashIcon className="h-5 w-5" />
@@ -75,13 +70,7 @@ const CampaignCard: React.FC<{
           <div className="flex items-center space-x-2">
             {campaign.platforms.map(p => <span key={p} className="text-2xl">{platformIcons[p]}</span>)}
           </div>
-          <button onClick={handleSave} className="p-2 rounded-full hover:bg-red-500/20 transition-colors">
-            {isSaved ? (
-              <BookmarkIconSolid className="h-6 w-6 text-red-500" />
-            ) : (
-              <BookmarkIconOutline className="h-6 w-6 text-gray-400" />
-            )}
-          </button>
+          <div className="text-lg font-bold text-red-500">${campaign.budget}</div>
         </div>
       </div>
     </div>
