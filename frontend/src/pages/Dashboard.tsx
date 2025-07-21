@@ -43,7 +43,7 @@ const Dashboard = () => {
       </div>
 
       {/* Corner Buttons */}
-      <div className="fixed top-22 right-5 z-50">
+      <div className="fixed top-20 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
               <SignalIcon className="h-6 w-6" />
