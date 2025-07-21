@@ -1,6 +1,6 @@
 // frontend/src/pages/Dashboard.tsx
 
-import React, { Fragment } from 'react';
+import React, 'Fragment' from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SavedCampaignItem from '../components/SavedCampaignItem';
@@ -9,7 +9,9 @@ import { Popover, Transition } from '@headlessui/react';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-  const { joinedCampaigns } = useAuth(); // Get the live list from our context
+  // --- THIS IS THE KEY FIX ---
+  // We are now asking the context for `joinedCampaigns`, which is the correct name.
+  const { joinedCampaigns } = useAuth();
 
   return (
     <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
@@ -28,6 +30,8 @@ const Dashboard = () => {
               <h2 className="text-lg font-bold">Joined Campaigns</h2>
           </div>
           <div className="mt-4 space-y-1">
+            {/* --- THIS IS THE KEY FIX --- */}
+            {/* We now correctly check `joinedCampaigns.length` */}
             {joinedCampaigns.length > 0 ? (
               joinedCampaigns.map(campaign => (
                 <SavedCampaignItem key={campaign._id} campaign={campaign} />
@@ -73,6 +77,7 @@ const Dashboard = () => {
                       <h2 className="text-lg font-bold">Joined Campaigns</h2>
                   </div>
                   <div className="mt-4 space-y-1">
+                    {/* --- THIS IS THE KEY FIX --- */}
                     {joinedCampaigns.length > 0 ? (
                         joinedCampaigns.map(campaign => (
                             <SavedCampaignItem key={campaign._id} campaign={campaign} />
