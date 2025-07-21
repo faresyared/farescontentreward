@@ -116,7 +116,6 @@ const Campaigns = () => {
       <Modal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} title={campaignToEdit ? "Edit Campaign" : "Add New Campaign"}>
         <AddCampaignForm onSuccess={handleFormSuccess} onClose={() => setIsFormModalOpen(false)} campaignToEdit={campaignToEdit} />
       </Modal>
-      {selectedCampaign && (
   {selectedCampaign && (
         <CampaignDetailsModal 
           campaign={selectedCampaign} 
