@@ -17,7 +17,7 @@ const initialState = {
   assets: { name: '', url: '' },
   platforms: [], rewardPer1kViews: 0, type: 'UGC',
   maxPayout: 0, minPayout: 0, category: 'Entertainment', status: 'Soon',
-  isPrivate: false, // Default to Public
+  isPrivate: false,
 };
 
 const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, campaignToEdit }) => {
@@ -28,11 +28,17 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
   useEffect(() => {
     if (campaignToEdit) {
       setFormData({
-        name: campaignToEdit.name, photo: campaignToEdit.photo, budget: campaignToEdit.budget,
-        rules: campaignToEdit.rules, assets: campaignToEdit.assets || { name: '', url: '' },
-        platforms: campaignToEdit.platforms, rewardPer1kViews: campaignToEdit.rewardPer1kViews || 0,
-        type: campaignToEdit.type, maxPayout: campaignToEdit.maxPayout || 0,
-        minPayout: campaignToEdit.minPayout || 0, category: campaignToEdit.category,
+        name: campaignToEdit.name,
+        photo: campaignToEdit.photo,
+        budget: campaignToEdit.budget,
+        rules: campaignToEdit.rules,
+        assets: campaignToEdit.assets || { name: '', url: '' },
+        platforms: campaignToEdit.platforms,
+        rewardPer1kViews: campaignToEdit.rewardPer1kViews || 0,
+        type: campaignToEdit.type,
+        maxPayout: campaignToEdit.maxPayout || 0,
+        minPayout: campaignToEdit.minPayout || 0,
+        category: campaignToEdit.category,
         status: campaignToEdit.status,
         isPrivate: campaignToEdit.isPrivate || false,
       });
@@ -109,43 +115,52 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
       setError(err.response?.data?.message || 'Failed to save campaign.');
     }
   };
- return (
+
+  return (
     <form onSubmit={onSubmit} className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Campaign Name</label>
-          <input type="text" name="name" value={formData.name} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 ..."/>
+          <input type="text" name="name" value={formData.name} onChange={onChange} required className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-300">Type</label>
-          <select name="type" value={formData.type} onChange={onChange} className="mt-1 w-full ...">
+          <select name="type" value={formData.type} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
             <option>UGC</option><option>Clipping</option><option>Faceless UGC</option>
           </select>
         </div>
       </div>
 
-     <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-2 gap-4">
         <div>
             <label className="block text-sm font-medium text-gray-300">Category</label>
-            <select name="category" value={formData.category} onChange={onChange} className="mt-1 w-full ...">
+            <select name="category" value={formData.category} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
                 <option>Personal Brand</option><option>Entertainment</option><option>Music</option>
             </select>
         </div>
         <div>
             <label className="block text-sm font-medium text-gray-300">Visibility</label>
-            <select name="isPrivate" value={String(formData.isPrivate)} onChange={onChange} className="mt-1 w-full ...">
-                <option value="false">Public</option>
-                <option value="true">Private</option>
+            <select name="isPrivate" value={String(formData.isPrivate)} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
+                <option value="false">Public - Instant Join</option>
+                <option value="true">Private - Join Waitlist</option>
             </select>
         </div>
       </div>
-
-          <label className="block text-sm font-medium text-gray-300">Status</label>
-          <select name="status" value={formData.status} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
-            <option>Soon</option><option>Active</option><option>Paused</option><option>Ended</option>
-          </select>
-        </div>
+      
+      <div>
+        <label className="block text-sm font-medium text-gray-300">Campaign Photo</label>
+        <input type="file" accept="image/*" onChange={handleImageUpload} className="mt-1 w-full text-sm text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-red-500/20 file:text-red-300 hover:file:bg-red-500/30"/>
+        {isUploading && <p className="text-blue-400 text-sm mt-1">Uploading...</p>}
+        {formData.photo && !isUploading && <img src={formData.photo} alt="Preview" className="mt-2 h-32 w-auto rounded-lg"/>}
       </div>
+
+      <div>
+        <label className="block text-sm font-medium text-gray-300">Status</label>
+        <select name="status" value={formData.status} onChange={onChange} className="mt-1 w-full bg-gray-800/60 rounded-lg p-2 border border-gray-700 focus:ring-red-500">
+          <option>Soon</option><option>Active</option><option>Paused</option><option>Ended</option>
+        </select>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-gray-300">Budget ($)</label>
@@ -189,9 +204,9 @@ const AddCampaignForm: React.FC<AddCampaignFormProps> = ({ onSuccess, onClose, c
         </div>
       </div>
       {error && <p className="text-red-400 text-sm text-center py-2">{error}</p>}
-<div className="flex justify-end pt-4 gap-3">
-        <button type="button" onClick={onClose} className="...">Cancel</button>
-        <button type="submit" className="..." disabled={isUploading}>
+      <div className="flex justify-end pt-4 gap-3">
+        <button type="button" onClick={onClose} className="bg-gray-700/50 hover:bg-gray-600/50 text-white font-bold py-2 px-4 rounded-lg">Cancel</button>
+        <button type="submit" className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg" disabled={isUploading}>
           {isUploading ? 'Uploading...' : (campaignToEdit ? 'Save Changes' : 'Create Campaign')}
         </button>
       </div>
