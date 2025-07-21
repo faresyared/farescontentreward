@@ -15,8 +15,10 @@ const Dashboard = () => {
       <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
       <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
 
-      {/* Main Layout Container */}
-      <div className="relative z-20 flex flex-col h-screen">
+      {/* --- THIS IS THE KEY CHANGE --- */}
+      {/* We REMOVE `z-20` from this container. The Navbar's own `z-40` will now
+          correctly place it above the main content, which has no z-index. */}
+      <div className="relative flex flex-col h-screen">
         <Navbar />
         
         <div className="flex flex-grow overflow-hidden">
@@ -41,10 +43,8 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Corner Buttons */}
-      {/* --- هذا هو التغيير --- */}
-      {/* Top Right: Livestreams - The top margin is changed from top-20 to top-24 */}
-      <div className="fixed top-28 right-5 z-50">
+      {/* Corner Buttons have a high z-index (z-50) to stay on top of everything */}
+      <div className="fixed top-24 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
               <SignalIcon className="h-6 w-6" />
