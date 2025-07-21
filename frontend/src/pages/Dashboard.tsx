@@ -3,6 +3,7 @@
 import React, { Fragment } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+
 // --- THIS IS THE FIX ---
 // I have added BookmarkIcon back to the import list.
 import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
@@ -37,7 +38,7 @@ const Dashboard = () => {
       </aside>
 
       {/* The main content area now has padding to avoid the fixed elements */}
-      <main className="pt-16 lg:pl-64"> {/* Padding top for Navbar, Padding left for sidebar */}
+      <main className="pt-16 lg:pl-64 pt-20"> {/* Padding top for Navbar, Padding left for sidebar */}
         <div className="p-4 sm:p-6 lg:p-8">
           <Outlet />
         </div>
