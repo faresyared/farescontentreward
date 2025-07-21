@@ -8,7 +8,6 @@ import { Popover, Transition } from '@headlessui/react';
 
 const Dashboard = () => {
   return (
-    // We keep overflow-hidden here as a "belt and suspenders" safety measure.
     <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
       
       {/* Animated Background Blobs */}
@@ -43,7 +42,9 @@ const Dashboard = () => {
       </div>
 
       {/* Corner Buttons */}
-      <div className="fixed top-20 right-5 z-50">
+      {/* --- هذا هو التغيير --- */}
+      {/* Top Right: Livestreams - The top margin is changed from top-20 to top-24 */}
+      <div className="fixed top-24 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
               <SignalIcon className="h-6 w-6" />
