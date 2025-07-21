@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
 import Earnings from './pages/Earnings';
 import Profile from './pages/Profile';
+import Settings from './pages/Settings'; // Import the new Settings page
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -28,6 +29,7 @@ function App() {
         <Route path="campaigns" element={<Campaigns />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="settings" element={<Settings />} /> {/* Add the new Settings route */}
       </Route>
     </Routes>
   );

@@ -10,16 +10,11 @@ const cors = require('cors');
 // --- DATABASE CONNECTION ---
 let isConnected;
 async function connectDB() {
-    if (isConnected) {
-        return;
-    }
+    if (isConnected) { return; }
     try {
         await mongoose.connect(process.env.MONGODB_URI);
         isConnected = true;
-        console.log('MongoDB Connection Successful.');
-    } catch (err) {
-        console.error('MongoDB Connection Failed:', err);
-    }
+    } catch (err) { console.error('MongoDB Connection Failed:', err); }
 }
 
 // --- MONGOOSE SCHEMAS (MODELS) ---
@@ -143,6 +138,56 @@ router.post('/users/signin', async (req, res) => {
     } catch (err) {
         console.error(err);
         res.status(500).send('Server error');
+    }
+});
+
+ro// GET the logged-in user's profile
+router.get('/users/me', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select('-password');
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        res.json(user);
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// UPDATE the logged-in user's profile
+router.put('/users/me', auth, async (req, res) => {
+    const { fullName, email, avatar } = req.body;
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        
+        user.fullName = fullName || user.fullName;
+        user.email = email || user.email;
+        user.avatar = avatar || user.avatar;
+        
+        await user.save();
+        
+        // --- THIS IS CRUCIAL ---
+        // We create a NEW token with the updated user info and send it back.
+        // This ensures the frontend stays in sync instantly.
+        const payload = {
+            user: {
+                id: user.id,
+                role: user.role,
+                username: user.username,
+                avatar: user.avatar
+            }
+        };
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
+
+        res.json({ token });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send('Server Error');
     }
 });
 
