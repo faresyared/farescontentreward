@@ -104,7 +104,6 @@ app.use(express.json({ limit: '50mb' }));
 const router = express.Router();
 
 // --- API ROUTES ---
-
 // AUTH ROUTES
 router.post('/users/signup', async (req, res) => {
     const { username, fullName, email, password } = req.body;
@@ -117,13 +116,12 @@ router.post('/users/signup', async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();
-        const payload = { user: { id: user.id, role: user.role } };
+        
+        // --- THIS IS THE KEY CHANGE ---
+        const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.status(201).json({ token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
 
 router.post('/users/signin', async (req, res) => {
@@ -133,14 +131,14 @@ router.post('/users/signin', async (req, res) => {
         if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials.' });
-        const payload = { user: { id: user.id, role: user.role } };
+
+        // --- THIS IS THE KEY CHANGE ---
+        const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.json({ token });
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error');
-    }
+    } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
+
 
 // GET the logged-in user's profile
 router.get('/users/me', auth, async (req, res) => {

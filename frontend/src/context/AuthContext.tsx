@@ -4,13 +4,14 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import setAuthToken from '../utils/setAuthToken';
-import { FullCampaign } from '../components/CampaignDetailsModal'; // We'll reuse this type
+import { FullCampaign } from '../components/CampaignDetailsModal';
 
+// --- THIS IS THE KEY CHANGE ---
 interface AuthUser {
   id: string;
   role: 'user' | 'admin';
-  username: string;
-  avatar: string;
+  username: string; // Add username
+  avatar: string;   // Add avatar
 }
 
 interface AuthContextType {
@@ -19,8 +20,8 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
-  savedCampaigns: FullCampaign[]; // New state for saved campaigns
-  toggleSaveCampaign: (campaignId: string) => Promise<void>; // New function to handle saving
+  savedCampaigns: FullCampaign[];
+  toggleSaveCampaign: (campaignId: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -66,9 +67,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('token', newToken);
     const decodedToken: { user: AuthUser } = jwtDecode(newToken);
     setToken(newToken);
-    setUser(decodedToken.user);
+    setUser(decodedToken.user); // The user object from the new token is now complete
     setAuthToken(newToken);
-    fetchSavedCampaigns(); // Fetch saved campaigns immediately on login
+    fetchSavedCampaigns();
   };
 
   const logout = () => {
@@ -76,14 +77,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setAuthToken(null);
-    setSavedCampaigns([]); // Clear saved campaigns on logout
+    setSavedCampaigns([]);
   };
 
   const toggleSaveCampaign = async (campaignId: string) => {
     try {
-        const res = await axios.put(`/api/users/me/save/${campaignId}`);
-        // The backend sends back the new list of saved campaign IDs.
-        // We need to refetch the full campaign objects.
+        await axios.put(`/api/users/me/save/${campaignId}`);
         fetchSavedCampaigns();
     } catch (err) {
         console.error("Failed to toggle save campaign", err);
