@@ -79,7 +79,7 @@ const Dashboard = () => {
 
       {/* --- THIS IS THE FIX for the chat icon --- */}
       {/* The bottom margin is changed from bottom-5 to bottom-20 */}
-      <div className="fixed bottom-20 right-5 z-50">
+      <div className="fixed bottom-20 left-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
               <ChatBubbleBottomCenterTextIcon className="h-8 w-8" />
