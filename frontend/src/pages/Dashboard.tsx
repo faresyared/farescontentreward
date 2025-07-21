@@ -3,47 +3,47 @@
 import React, { Fragment } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
+import { SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
-      
-      {/* Animated Background Blobs */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-      <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-
-      {/* --- THIS IS THE KEY CHANGE --- */}
-      {/* We REMOVE `z-20` from this container. The Navbar's own `z-40` will now
-          correctly place it above the main content, which has no z-index. */}
-      <div className="relative flex flex-col h-screen">
-        <Navbar />
-        
-        <div className="flex flex-grow overflow-hidden">
-          {/* Left Sidebar: Saved Campaigns */}
-          <aside className="hidden lg:block w-64 flex-shrink-0 bg-gray-900/30 border-r border-gray-800/50 p-4">
-            <div className="flex items-center gap-2 text-gray-400 mb-4">
-                <BookmarkIcon className="h-6 w-6 text-red-500" />
-                <h2 className="text-lg font-bold">Saved Campaigns</h2>
-            </div>
-            <div className="text-center text-gray-500 mt-10">
-                <p>Your saved campaigns will appear here.</p>
-                <span className="text-xs font-semibold bg-blue-500/20 text-blue-300 py-1 px-2 rounded-full mt-2 inline-block">
-                    Coming Soon
-                </span>
-            </div>
-          </aside>
-
-          {/* Main Content Area */}
-          <main className="flex-grow overflow-y-auto p-4 sm:p-6 lg:p-8 pb-24 md:pb-8">
-            <Outlet />
-          </main>
-        </div>
+    <div className="min-h-screen bg-black font-sans text-gray-300">
+      {/* Animated Background Blobs stay in the back */}
+      <div className="fixed inset-0 overflow-hidden -z-10">
+        <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
+        <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
+        <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* Corner Buttons have a high z-index (z-50) to stay on top of everything */}
+      {/* --- THIS IS THE KEY CHANGE --- */}
+      {/* The Navbar is now a direct child and will render on top. */}
+      {/* The Outlet (main content) is in a separate container with top padding. */}
+      <Navbar />
+      
+      <div className="lg:pl-64"> {/* This padding matches the width of the desktop sidebar */}
+        <main className="py-6 px-4 sm:px-6 lg:px-8">
+            <Outlet />
+        </main>
+      </div>
+
+      {/* --- The sidebars and corner buttons are now separate from the main layout flow --- */}
+
+      {/* Left Sidebar: Saved Campaigns (Fixed Position) */}
+      <aside className="hidden lg:block fixed top-0 left-0 z-30 h-full w-64 bg-black/30 border-r border-gray-800/50 pt-20 p-4">
+        <div className="flex items-center gap-2 text-gray-400 mb-4">
+            <BookmarkIcon className="h-6 w-6 text-red-500" />
+            <h2 className="text-lg font-bold">Saved Campaigns</h2>
+        </div>
+        <div className="text-center text-gray-500 mt-10">
+            <p>Your saved campaigns will appear here.</p>
+            <span className="text-xs font-semibold bg-blue-500/20 text-blue-300 py-1 px-2 rounded-full mt-2 inline-block">
+                Coming Soon
+            </span>
+        </div>
+      </aside>
+
+      {/* Corner Buttons */}
       <div className="fixed top-24 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
