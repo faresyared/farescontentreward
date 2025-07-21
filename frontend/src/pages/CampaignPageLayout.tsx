@@ -1,18 +1,16 @@
 // frontend/src/pages/CampaignPageLayout.tsx
 
-import React, { Fragment, useState, useEffect } from 'react';
+import React from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
-import axios from 'axios';
 import Navbar from '../components/Navbar';
 import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon } from '@heroicons/react/24/solid';
-import { FullCampaign } from '../components/CampaignDetailsModal';
 import { useAuth } from '../context/AuthContext';
 
-// This is a new, clean layout specifically for the Campaign Pages.
-// It has no floating corner buttons.
 const CampaignPageLayout = () => {
-  const { savedCampaigns } = useAuth();
+  // --- THIS IS THE KEY FIX ---
+  // We are now asking the context for `joinedCampaigns`, which is the correct name.
+  const { joinedCampaigns } = useAuth();
 
   return (
     <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
@@ -28,22 +26,24 @@ const CampaignPageLayout = () => {
         <aside className="hidden lg:block fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-black/10 border-r border-gray-800/50 p-4">
           <div className="flex items-center gap-2 text-gray-400 mb-4">
               <BookmarkIcon className="h-6 w-6 text-red-500" />
-              <h2 className="text-lg font-bold">Saved Campaigns</h2>
+              <h2 className="text-lg font-bold">Joined Campaigns</h2>
           </div>
           <div className="mt-4 space-y-1">
-            {savedCampaigns.length > 0 ? (
-              savedCampaigns.map(campaign => (
+            {/* --- THIS IS THE KEY FIX --- */}
+            {/* We now correctly check `joinedCampaigns.length` */}
+            {joinedCampaigns.length > 0 ? (
+              joinedCampaigns.map(campaign => (
                 <SavedCampaignItem key={campaign._id} campaign={campaign} />
               ))
             ) : (
-              <p className="text-gray-500 text-sm text-center mt-8">You have no saved campaigns.</p>
+              <p className="text-gray-500 text-sm text-center mt-8">You haven't joined any campaigns yet.</p>
             )}
           </div>
         </aside>
         
         <main className="flex-grow lg:pl-64">
           <div className="p-4 sm:p-6 lg:p-8 pb-20">
-            <Outlet /> {/* The actual CampaignPage will be rendered here */}
+            <Outlet />
           </div>
         </main>
       </div>
