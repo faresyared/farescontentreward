@@ -1,16 +1,15 @@
 // frontend/src/pages/Dashboard.tsx
 
-import React, 'Fragment' from 'react';
+import React, { Fragment, useState, useEffect } from 'react';
 import { Outlet, NavLink } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
 import { useAuth } from '../context/AuthContext';
+import { FullCampaign } from '../components/CampaignDetailsModal';
 
 const Dashboard = () => {
-  // --- THIS IS THE KEY FIX ---
-  // We are now asking the context for `joinedCampaigns`, which is the correct name.
   const { joinedCampaigns } = useAuth();
 
   return (
@@ -30,8 +29,6 @@ const Dashboard = () => {
               <h2 className="text-lg font-bold">Joined Campaigns</h2>
           </div>
           <div className="mt-4 space-y-1">
-            {/* --- THIS IS THE KEY FIX --- */}
-            {/* We now correctly check `joinedCampaigns.length` */}
             {joinedCampaigns.length > 0 ? (
               joinedCampaigns.map(campaign => (
                 <SavedCampaignItem key={campaign._id} campaign={campaign} />
@@ -77,7 +74,6 @@ const Dashboard = () => {
                       <h2 className="text-lg font-bold">Joined Campaigns</h2>
                   </div>
                   <div className="mt-4 space-y-1">
-                    {/* --- THIS IS THE KEY FIX --- */}
                     {joinedCampaigns.length > 0 ? (
                         joinedCampaigns.map(campaign => (
                             <SavedCampaignItem key={campaign._id} campaign={campaign} />
