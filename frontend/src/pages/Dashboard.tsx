@@ -3,33 +3,26 @@
 import React, { Fragment } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
+// --- THIS IS THE FIX ---
+// I have added BookmarkIcon back to the import list.
+import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
 
 const Dashboard = () => {
   return (
+    // This outer div is the main container for the entire screen
     <div className="min-h-screen bg-black font-sans text-gray-300">
-      {/* Animated Background Blobs stay in the back */}
+      {/* The animated blobs are now fixed to the viewport and behind everything else */}
       <div className="fixed inset-0 overflow-hidden -z-10">
         <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
-      {/* --- THIS IS THE KEY CHANGE --- */}
-      {/* The Navbar is now a direct child and will render on top. */}
-      {/* The Outlet (main content) is in a separate container with top padding. */}
+      {/* The Navbar is fixed to the top of the screen */}
       <Navbar />
       
-      <div className="lg:pl-64"> {/* This padding matches the width of the desktop sidebar */}
-        <main className="py-6 px-4 sm:px-6 lg:px-8">
-            <Outlet />
-        </main>
-      </div>
-
-      {/* --- The sidebars and corner buttons are now separate from the main layout flow --- */}
-
-      {/* Left Sidebar: Saved Campaigns (Fixed Position) */}
+      {/* The desktop sidebar is also fixed to the side of the screen */}
       <aside className="hidden lg:block fixed top-0 left-0 z-30 h-full w-64 bg-black/30 border-r border-gray-800/50 pt-20 p-4">
         <div className="flex items-center gap-2 text-gray-400 mb-4">
             <BookmarkIcon className="h-6 w-6 text-red-500" />
@@ -43,7 +36,14 @@ const Dashboard = () => {
         </div>
       </aside>
 
-      {/* Corner Buttons */}
+      {/* The main content area now has padding to avoid the fixed elements */}
+      <main className="pt-16 lg:pl-64"> {/* Padding top for Navbar, Padding left for sidebar */}
+        <div className="p-4 sm:p-6 lg:p-8">
+          <Outlet />
+        </div>
+      </main>
+
+      {/* Corner Buttons are fixed and will float above everything */}
       <div className="fixed top-24 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
