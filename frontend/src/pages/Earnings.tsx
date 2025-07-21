@@ -1,90 +1,131 @@
-// src/pages/Earnings.tsx
+// frontend/src/pages/Earnings.tsx
 
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { BanknotesIcon, ArrowDownTrayIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
+import Modal from '../components/Modal';
+import AddTransactionForm from '../components/AddTransactionForm';
+import { format } from 'date-fns';
 
-// Define the Transaction type locally, following our successful pattern.
 interface Transaction {
-  id: number;
+  _id: string;
   date: string;
   description: string;
   amount: number;
   type: 'Earning' | 'Deposit';
+  createdAt: string;
 }
 
-// Mock data
-const mockTransactions: Transaction[] = [
-  { id: 1, date: '2025-07-18', description: 'Payout for "CyberRays" Campaign', amount: 350.00, type: 'Earning' },
-  { id: 2, date: '2025-07-15', description: 'User Deposit', amount: 50.00, type: 'Deposit' },
-  { id: 3, date: '2025-07-12', description: 'Payout for "Apex Gaming" Clip', amount: 75.50, type: 'Earning' },
-  { id: 4, date: '2025-07-10', description: 'Payout for "Nova Watch" UGC', amount: 120.25, type: 'Earning' },
-];
-
-const totalEarnings = 545.75;
-const pendingEarnings = 120.25;
-
-const isAdmin = true;
-
 const Earnings = () => {
-  return (
-    <div>
-      {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-4xl font-bold text-white">Earnings</h1>
-        {isAdmin && (
-          <button className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105">
-            <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Transaction
-          </button>
-        )}
-      </div>
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'admin';
 
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        {/* Total Earnings Card */}
-        <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800/50 flex items-center space-x-4 shadow-lg hover:border-green-500/30 hover:shadow-green-500/10 transition-all">
-          <div className="bg-green-500/10 p-3 rounded-full">
-            <BanknotesIcon className="h-8 w-8 text-green-400" />
-          </div>
-          <div>
-            <p className="text-gray-400 text-sm">Total Earnings</p>
-            <p className="text-3xl font-bold text-white">${totalEarnings.toFixed(2)}</p>
-          </div>
-        </div>
-        {/* Pending Earnings Card */}
-        <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800/50 flex items-center space-x-4 shadow-lg hover:border-yellow-500/30 hover:shadow-yellow-500/10 transition-all">
-          <div className="bg-yellow-500/10 p-3 rounded-full">
-            <ArrowDownTrayIcon className="h-8 w-8 text-yellow-400" />
-          </div>
-          <div>
-            <p className="text-gray-400 text-sm">Pending Deposit</p>
-            <p className="text-3xl font-bold text-white">${pendingEarnings.toFixed(2)}</p>
-          </div>
-        </div>
-      </div>
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-      {/* Transaction History */}
-      <h2 className="text-2xl font-bold text-white mb-4">Transaction History</h2>
-      <div className="bg-gray-900/50 rounded-2xl border border-gray-800/50 overflow-hidden">
-        {/* Table Header */}
-        <div className="grid grid-cols-3 text-sm font-semibold text-gray-400 p-4 border-b border-gray-800/50">
-          <div>Date</div>
-          <div>Description</div>
-          <div className="text-right">Amount</div>
-        </div>
-        {/* Table Body */}
-        <div className="divide-y divide-gray-800/50">
-          {mockTransactions.map((transaction) => (
-            <div key={transaction.id} className="grid grid-cols-3 p-4 items-center hover:bg-gray-800/40 transition-colors">
-              <div className="text-gray-300">{transaction.date}</div>
-              <div className="text-gray-300">{transaction.description}</div>
-              <div className={`text-right font-semibold ${transaction.type === 'Earning' ? 'text-green-400' : 'text-blue-400'}`}>
-                {transaction.type === 'Earning' ? '+' : ''}${transaction.amount.toFixed(2)}
-              </div>
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      const res = await axios.get('/api/transactions/me');
+      setTransactions(res.data);
+    } catch (err) {
+      setError('Failed to load transaction history.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const { totalEarnings, totalDeposits } = useMemo(() => {
+    return transactions.reduce((acc, transaction) => {
+      if (transaction.type === 'Earning') {
+        acc.totalEarnings += transaction.amount;
+      } else if (transaction.type === 'Deposit') {
+        acc.totalDeposits += transaction.amount;
+      }
+      return acc;
+    }, { totalEarnings: 0, totalDeposits: 0 });
+  }, [transactions]);
+  
+  // As per your request, "Pending Earnings" is the total earnings.
+  const pendingEarnings = totalEarnings - totalDeposits;
+
+  const handleSuccess = () => {
+    setIsModalOpen(false);
+    fetchTransactions(); // Refetch transactions after admin adds a new one
+  };
+
+  const renderContent = () => {
+    if (loading) return <p className="text-center text-gray-500">Loading history...</p>;
+    if (error) return <p className="text-center text-red-500">{error}</p>;
+    if (transactions.length === 0) return <p className="text-center text-gray-500">No transactions yet.</p>;
+
+    return (
+      <div className="divide-y divide-gray-800/50">
+        {transactions.map((transaction) => (
+          <div key={transaction._id} className="grid grid-cols-3 p-4 items-center hover:bg-gray-800/40 transition-colors">
+            <div className="text-gray-300">
+              <p>{format(new Date(transaction.createdAt), 'MMM dd, yyyy')}</p>
+              <p className="text-xs text-gray-500">{format(new Date(transaction.createdAt), 'p')}</p>
             </div>
-          ))}
+            <div className="text-gray-300">{transaction.description}</div>
+            <div className={`text-right font-semibold ${transaction.type === 'Earning' ? 'text-green-400' : 'text-blue-400'}`}>
+              {transaction.type === 'Earning' ? '+' : '-'}${transaction.amount.toFixed(2)}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  return (
+    <>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Add New Transaction">
+        <AddTransactionForm onSuccess={handleSuccess} onClose={() => setIsModalOpen(false)} />
+      </Modal>
+
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-4xl font-bold text-white">Earnings</h1>
+          {isAdmin && (
+            <button onClick={() => setIsModalOpen(true)} className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105">
+              <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Transaction
+            </button>
+          )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800/50 flex items-center space-x-4 shadow-lg hover:border-green-500/30 hover:shadow-green-500/10 transition-all">
+            <div className="bg-green-500/10 p-3 rounded-full"><BanknotesIcon className="h-8 w-8 text-green-400" /></div>
+            <div>
+              <p className="text-gray-400 text-sm">Total Earnings</p>
+              <p className="text-3xl font-bold text-white">${totalEarnings.toFixed(2)}</p>
+            </div>
+          </div>
+          <div className="bg-gray-900/50 p-6 rounded-2xl border border-gray-800/50 flex items-center space-x-4 shadow-lg hover:border-yellow-500/30 hover:shadow-yellow-500/10 transition-all">
+            <div className="bg-yellow-500/10 p-3 rounded-full"><ArrowDownTrayIcon className="h-8 w-8 text-yellow-400" /></div>
+            <div>
+              <p className="text-gray-400 text-sm">Pending Payout</p>
+              <p className="text-3xl font-bold text-white">${pendingEarnings.toFixed(2)}</p>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-white mb-4">Transaction History</h2>
+        <div className="bg-gray-900/50 rounded-2xl border border-gray-800/50 overflow-hidden">
+          <div className="grid grid-cols-3 text-sm font-semibold text-gray-400 p-4 border-b border-gray-800/50">
+            <div>Date</div><div>Description</div><div className="text-right">Amount</div>
+          </div>
+          {renderContent()}
         </div>
       </div>
-    </div>
+    </>
   );
 };
 

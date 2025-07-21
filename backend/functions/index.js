@@ -66,9 +66,18 @@ const PostSchema = new mongoose.Schema({
     reactions: [ReactionSchema], // Array of reaction objects
 }, { timestamps: true });
 
+const TransactionSchema = new mongoose.Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    type: { type: String, enum: ['Earning', 'Deposit'], required: true },
+    amount: { type: Number, required: true },
+    description: { type: String, required: true },
+    campaign: { type: mongoose.Schema.Types.ObjectId, ref: 'Campaign' } // Optional link to a campaign
+}, { timestamps: true });
+
 const User = mongoose.models.User || mongoose.model('User', UserSchema);
 const Campaign = mongoose.models.Campaign || mongoose.model('Campaign', CampaignSchema);
 const Post = mongoose.models.Post || mongoose.model('Post', PostSchema);
+const Transaction = mongoose.models.Transaction || mongoose.model('Transaction', TransactionSchema);
 
 // --- MIDDLEWARE ---
 const auth = (req, res, next) => {
@@ -464,6 +473,35 @@ router.put('/posts/:id/react', auth, async (req, res) => {
         res.json(populatedPost.reactions);
     } catch (err) { console.error(err); res.status(500).send('Server Error'); }
 });
+
+// GET the logged-in user's own transactions
+router.get('/transactions/me', auth, async (req, res) => {
+    try {
+        const transactions = await Transaction.find({ user: req.user.id }).sort({ createdAt: -1 });
+        res.json(transactions);
+    } catch (err) {
+        console.error("Error fetching transactions:", err);
+        res.status(500).send('Server Error');
+    }
+});
+// POST (create) a new transaction for a user (Admin Only)
+router.post('/transactions', [auth, adminAuth], async (req, res) => {
+    try {
+        const { userId, type, amount, description } = req.body;
+        // Find the user to ensure they exist
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const newTransaction = new Transaction({ user: userId, type, amount, description });
+        await newTransaction.save();
+        res.status(201).json(newTransaction);
+    } catch (err) {
+        console.error("Error creating transaction:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 
 // --- FINAL SETUP ---
 app.use('/api', router);
