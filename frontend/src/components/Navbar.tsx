@@ -12,10 +12,12 @@ const Navbar = () => {
 
   const handleLogout = () => {
     logout();
-    navigate('/'); // Redirect to sign-in page after logout
+    navigate('/');
   };
     
-  const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) => flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${ isActive ? 'bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' };
+  // --- THIS IS THE FIRST FIX ---
+  // The entire string must be wrapped in backticks (`).
+  const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) => `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${ isActive ? 'bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }`;
 
   return (
     <nav className="sticky top-0 z-40 bg-black/70 backdrop-blur-xl border-b border-gray-800/50">
@@ -31,7 +33,6 @@ const Navbar = () => {
           </div>
 
           <div className="flex items-center">
-            {/* --- THIS IS THE NEW PROFILE DROPDOWN MENU --- */}
             <Menu as="div" className="relative">
               <Menu.Button className="flex items-center space-x-3 hover:bg-gray-800/50 p-2 rounded-lg transition-colors duration-300 outline-none">
                 <span className="text-white font-medium hidden sm:block">{user?.username}</span>
@@ -42,14 +43,16 @@ const Navbar = () => {
                   <div className="p-1">
                     <Menu.Item>
                       {({ active }) => (
-                        <NavLink to="/dashboard/profile" className={${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm}>
+                        // --- THIS IS THE SECOND FIX ---
+                        // The className must use backticks (` `) to correctly interpolate the active state.
+                        <NavLink to="/dashboard/profile" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}>
                           <UserIcon className="mr-2 h-5 w-5" /> Edit Profile
                         </NavLink>
                       )}
                     </Menu.Item>
                     <Menu.Item>
                       {({ active }) => (
-                        <NavLink to="/dashboard/settings" className={${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm}>
+                        <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}>
                           <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings
                         </NavLink>
                       )}
@@ -57,7 +60,7 @@ const Navbar = () => {
                     <div className="my-1 h-px bg-gray-700/50" />
                     <Menu.Item>
                       {({ active }) => (
-                        <button onClick={handleLogout} className={${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm}>
+                        <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}>
                           <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout
                         </button>
                       )}
@@ -70,7 +73,6 @@ const Navbar = () => {
         </div>
       </div>
       
-      {/* --- Mobile Bottom Bar --- */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-t border-gray-800/50 p-1">
         <div className="flex justify-around items-center">
             <NavLink to="/dashboard/home" className="flex-1 text-center py-2 text-gray-400 rounded-lg data-[active]:bg-red-500/10 data-[active]:text-red-400">Home</NavLink>
