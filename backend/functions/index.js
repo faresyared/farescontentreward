@@ -141,7 +141,7 @@ router.post('/users/signin', async (req, res) => {
     }
 });
 
-ro// GET the logged-in user's profile
+// GET the logged-in user's profile
 router.get('/users/me', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id).select('-password');
