@@ -1,6 +1,6 @@
 // frontend/src/pages/Campaigns.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import CampaignCard from '../components/CampaignCard';
 import Modal from '../components/Modal';
@@ -11,11 +11,10 @@ import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
 const Campaigns = () => {
-  const { user } = useAuth();
+  const { user, savedCampaigns, toggleSaveCampaign } = useAuth();
   const isAdmin = user?.role === 'admin';
 
   const [campaigns, setCampaigns] = useState<FullCampaign[]>([]);
-  const [savedCampaignIds, setSavedCampaignIds] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -30,6 +29,9 @@ const Campaigns = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<FullCampaign | null>(null);
   
+  // Use a more efficient Set for checking if a campaign is saved
+  const savedCampaignIds = useMemo(() => new Set(savedCampaigns.map(c => c._id)), [savedCampaigns]);
+
   const fetchCampaigns = useCallback(async () => {
     setLoading(true);
     try {
@@ -45,19 +47,6 @@ const Campaigns = () => {
       setLoading(false);
     }
   }, [searchQuery, platformFilter, typeFilter]);
-  
-  useEffect(() => {
-    const fetchSaved = async () => {
-      try {
-        const res = await axios.get('/api/users/me/saved');
-        const savedIds = new Set(res.data.map((c: FullCampaign) => c._id));
-        setSavedCampaignIds(savedIds);
-      } catch (err) {
-        console.error("Could not fetch saved campaigns", err);
-      }
-    };
-    fetchSaved();
-  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,26 +77,7 @@ const Campaigns = () => {
       setCampaigns(campaigns.filter(c => c._id !== campaignToDelete._id));
       setIsDeleteModalOpen(false);
       setCampaignToDelete(null);
-    } catch (err) {
-      console.error("Failed to delete campaign", err);
-    }
-  };
-
-  const handleSaveToggle = async (campaignId: string) => {
-    const originalSavedIds = new Set(savedCampaignIds);
-    const newSavedCampaignIds = new Set(savedCampaignIds);
-    if (newSavedCampaignIds.has(campaignId)) {
-      newSavedCampaignIds.delete(campaignId);
-    } else {
-      newSavedCampaignIds.add(campaignId);
-    }
-    setSavedCampaignIds(newSavedCampaignIds);
-    try {
-      await axios.put(`/api/users/me/save/${campaignId}`);
-    } catch (err) {
-      setError('Failed to update saved status.');
-      setSavedCampaignIds(originalSavedIds);
-    }
+    } catch (err) { console.error("Failed to delete campaign", err); }
   };
   
   const renderContent = () => {
@@ -124,7 +94,7 @@ const Campaigns = () => {
             onCardClick={() => openDetailsModal(campaign)}
             onEditClick={() => openEditModal(campaign)}
             onDeleteClick={() => openDeleteModal(campaign)}
-            onSaveClick={() => handleSaveToggle(campaign._id)}
+            onSaveClick={() => toggleSaveCampaign(campaign._id)}
           />
         ))}
       </div>
