@@ -13,9 +13,12 @@ const statusStyles = {
 
 const SavedCampaignItem: React.FC<{ campaign: FullCampaign }> = ({ campaign }) => {
   return (
+    // --- THIS IS THE KEY CHANGE ---
+    // The link now includes a "?view=" parameter with the campaign's ID.
+    // This is how we will tell the Campaigns page which one to open.
     <NavLink
-      to={`/dashboard/campaigns`} // Placeholder link for now
-      className="flex items-center gap-3 p-2 rounded-lg text-gray-300 hover:bg-gray-800/50"
+      to={`/dashboard/campaigns?view=${campaign._id}`}
+      className="flex items-center gap-3 p-2 rounded-lg text-gray-300 hover:bg-gray-800/50 transition-colors duration-200"
     >
       {/* Status Indicator */}
       <div className={`w-2 h-2 rounded-full flex-shrink-0 ${statusStyles[campaign.status]}`} />

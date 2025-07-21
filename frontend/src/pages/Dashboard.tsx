@@ -1,15 +1,17 @@
 // frontend/src/pages/Dashboard.tsx
 
-import React, { Fragment } from 'react';
-import { Outlet } from 'react-router-dom';
+import React, { Fragment, useState, useEffect } from 'react';
+import { Outlet, NavLink } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from '../components/Navbar';
-import SavedCampaignItem from '../components/SavedCampaignItem'; // Import our new component
+import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
+import { FullCampaign } from '../components/CampaignDetailsModal';
 import { useAuth } from '../context/AuthContext';
 
 const Dashboard = () => {
-  const { savedCampaigns } = useAuth(); // Get the live list from our context
+  const { savedCampaigns } = useAuth();
 
   return (
     <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
@@ -37,9 +39,11 @@ const Dashboard = () => {
             )}
           </div>
         </aside>
-
+        
+        {/* --- THIS IS THE KEY LAYOUT FIX --- */}
         <main className="flex-grow lg:pl-64">
-          <div className="p-4 sm:p-6 lg:p-8">
+          {/* We add pb-20 (padding-bottom: 5rem) to create space for the mobile nav */}
+          <div className="p-4 sm:p-6 lg:p-8 pb-20">
             <Outlet />
           </div>
         </main>

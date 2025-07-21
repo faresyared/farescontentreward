@@ -1,6 +1,7 @@
 // frontend/src/pages/Campaigns.tsx
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 import CampaignCard from '../components/CampaignCard';
 import Modal from '../components/Modal';
@@ -13,6 +14,7 @@ import { useAuth } from '../context/AuthContext';
 const Campaigns = () => {
   const { user, savedCampaigns, toggleSaveCampaign } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const [campaigns, setCampaigns] = useState<FullCampaign[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +31,6 @@ const Campaigns = () => {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [campaignToDelete, setCampaignToDelete] = useState<FullCampaign | null>(null);
   
-  // Use a more efficient Set for checking if a campaign is saved
   const savedCampaignIds = useMemo(() => new Set(savedCampaigns.map(c => c._id)), [savedCampaigns]);
 
   const fetchCampaigns = useCallback(async () => {
@@ -55,6 +56,20 @@ const Campaigns = () => {
     return () => clearTimeout(timer);
   }, [fetchCampaigns]);
   
+  // --- THIS IS THE NEW LOGIC TO OPEN THE MODAL FROM A URL ---
+  useEffect(() => {
+    const campaignIdToView = searchParams.get('view');
+    if (campaignIdToView && campaigns.length > 0) {
+      const campaignToShow = campaigns.find(c => c._id === campaignIdToView);
+      if (campaignToShow) {
+        setSelectedCampaign(campaignToShow);
+        setIsDetailsModalOpen(true);
+        // Clear the search param so it doesn't re-open on refresh
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [campaigns, searchParams, setSearchParams]);
+
   const handleFormSuccess = (updatedCampaign: FullCampaign) => {
     if (campaignToEdit) {
       setCampaigns(campaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c));
@@ -69,7 +84,7 @@ const Campaigns = () => {
   const openEditModal = (campaign: FullCampaign) => { setCampaignToEdit(campaign); setIsFormModalOpen(true); };
   const openDetailsModal = (campaign: FullCampaign) => { setSelectedCampaign(campaign); setIsDetailsModalOpen(true); };
   const openDeleteModal = (campaign: FullCampaign) => { setCampaignToDelete(campaign); setIsDeleteModalOpen(true); };
-  
+
   const handleDeleteCampaign = async () => {
     if (!campaignToDelete) return;
     try {
@@ -100,7 +115,7 @@ const Campaigns = () => {
       </div>
     );
   };
-  
+
   return (
     <>
       <Modal isOpen={isFormModalOpen} onClose={() => setIsFormModalOpen(false)} title={campaignToEdit ? "Edit Campaign" : "Add New Campaign"}>
