@@ -1,4 +1,4 @@
-// src/components/Modal.tsx
+// frontend/src/components/Modal.tsx
 
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +15,10 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        // --- THIS IS THE KEY CHANGE ---
+        // We increase the z-index from z-50 to z-[60] (an arbitrary higher value).
+        // This ensures the modal and its backdrop are always on top of the corner buttons.
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4">
           {/* Backdrop */}
           <motion.div
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
