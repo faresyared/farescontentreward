@@ -27,15 +27,18 @@ const UserSchema = new mongoose.Schema({
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
 }, { timestamps: true });
 
+// --- THIS IS THE KEY BACKEND CHANGE ---
+const ChannelSchema = new mongoose.Schema({
+    name: { type: String, required: true }, // e.g., "Chat", "Updates", "Leaderboard"
+    type: { type: String, required: true }, // e.g., "chat", "feed", "leaderboard"
+});
+
 const CampaignSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
     photo: { type: String, required: true },
     budget: { type: Number, required: true },
     rules: { type: String, required: true },
-    assets: {
-        name: { type: String },
-        url: { type: String }
-    },
+    assets: { name: { type: String }, url: { type: String } },
     platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'], required: true }],
     rewardPer1kViews: { type: Number },
     type: { type: String, enum: ['UGC', 'Clipping', 'Faceless UGC'], required: true },
@@ -45,7 +48,8 @@ const CampaignSchema = new mongoose.Schema({
     status: { type: String, enum: ['Active', 'Ended', 'Soon', 'Paused'], default: 'Soon', required: true },
     isPrivate: { type: Boolean, default: false },
     participants: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+    waitlist: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    channels: [ChannelSchema] // Array of channel objects
 }, { timestamps: true });
 
 const ReactionSchema = new mongoose.Schema({
