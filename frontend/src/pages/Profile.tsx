@@ -83,7 +83,7 @@ const Profile = () => {
         <form onSubmit={onSubmit} className="p-8 space-y-6">
           <div className="flex justify-center">
             <div className="relative group">
-              <img className="h-32 w-32 rounded-full object-cover border-4 border-gray-700/50 group-hover:border-red-500/50 transition-all duration-300" src={avatar} alt="Profile" />
+              <img className="h-32 w-32 rounded-full object-cover border-4 border-gray-700/50 group-hover:border-red-500/50 transition-all duration-300" src="https://res.cloudinary.com/dqbgu5rwq/image/upload/v1753148273/avatar.png" alt="Profile" />
               <label htmlFor="profile-photo-upload" className="absolute inset-0 bg-black/60 rounded-full flex items-center justify-center text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity duration-300">
                 <CameraIcon className="h-8 w-8" />
               </label>
