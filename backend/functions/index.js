@@ -25,6 +25,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     avatar: { type: String, default: 'https://i.pravatar.cc/150' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
+ isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 // --- THIS IS THE KEY BACKEND CHANGE ---
@@ -209,6 +210,36 @@ router.get('/users/me/joined', auth, async (req, res) => {
         res.json(campaigns);
     } catch (err) {
         console.error("Error fetching joined campaigns:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
+// GET all users (Admin Only)
+router.get('/users', [auth, adminAuth], async (req, res) => {
+    try {
+        const users = await User.find().select('-password').sort({ createdAt: -1 });
+        res.json(users);
+    } catch (err) {
+        console.error("Error fetching all users:", err);
+        res.status(500).send('Server Error');
+    }
+});
+// UPDATE a specific user's status/role (Admin Only)
+router.put('/users/:id', [auth, adminAuth], async (req, res) => {
+    try {
+        const { role, isActive } = req.body;
+        const user = await User.findById(req.params.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+        
+        user.role = role !== undefined ? role : user.role;
+        user.isActive = isActive !== undefined ? isActive : user.isActive;
+        
+        await user.save();
+        res.json(user);
+    } catch (err) {
+        console.error("Error updating user:", err);
         res.status(500).send('Server Error');
     }
 });

@@ -12,8 +12,9 @@ import Campaigns from './pages/Campaigns';
 import Earnings from './pages/Earnings';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import CampaignPageLayout from './pages/CampaignPageLayout'; // Import the new layout
-import CampaignPage from './pages/CampaignPage'; // Import the new page
+import CampaignPageLayout from './pages/CampaignPageLayout';
+import CampaignPage from './pages/CampaignPage';
+import UserManagement from './pages/UserManagement'; // Import the new page
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -25,7 +26,6 @@ function App() {
       <Route path="/" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
 
-      {/* Main Dashboard Routes */}
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<Home />} />
@@ -33,9 +33,9 @@ function App() {
         <Route path="earnings" element={<Earnings />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
+        <Route path="users" element={<UserManagement />} /> {/* Add the new admin route */}
       </Route>
 
-      {/* --- THIS IS THE NEW ROUTE FOR INDIVIDUAL CAMPAIGN PAGES --- */}
       <Route element={<CampaignPageLayout />}>
         <Route path="/dashboard/campaign/:id" element={<CampaignPage />} />
       </Route>
