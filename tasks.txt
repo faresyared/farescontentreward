@@ -1,12 +1,7 @@
-Connected Accounts
--
+Connected Accounts -
  Social Media Link Verification with Code or OTP
 or
 Social Media Handle Verification via Web Scraping
----
-chat icon should be above the campaign details
----
-Earnings page
 ---
 can join with email and username
 ---

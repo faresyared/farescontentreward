@@ -6,6 +6,10 @@ const serverless = require('serverless-http');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const crypto = require('crypto');
+const nodemailer = require('nodemailer');
 
 // --- DATABASE CONNECTION ---
 let isConnected;
@@ -17,15 +21,18 @@ async function connectDB() {
     } catch (err) { console.error('MongoDB Connection Failed:', err); }
 }
 
-// --- MONGOOSE SCHEMAS (MODELS) ---
+// --- MONGOOSE SCHEMAS & MODELS ---
 const UserSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true, trim: true },
+    username: { type: String, required: true, unique: true, trim: true, sparse: true },
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    avatar: { type: String, default: 'https://res.cloudinary.com/dqbgu5rwq/image/upload/v1753148273/avatar.png' },
+    password: { type: String }, // Not required for Google users
+    avatar: { type: String, default: 'https://i.pravatar.cc/150' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
- isActive: { type: Boolean, default: true },
+    isActive: { type: Boolean, default: true },
+    googleId: { type: String },
+    passwordResetToken: { type: String },
+    passwordResetExpires: { type: Date },
 }, { timestamps: true });
 
 // --- THIS IS THE KEY BACKEND CHANGE ---
@@ -110,6 +117,37 @@ const adminAuth = async (req, res, next) => {
     }
 };
 
+// --- PASSPORT (GOOGLE AUTH) SETUP ---
+passport.use(new GoogleStrategy({
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: '/api/auth/google/callback'
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+        let user = await User.findOne({ googleId: profile.id });
+        if (user) { return done(null, user); }
+
+        user = await User.findOne({ email: profile.emails[0].value });
+        if (user) {
+            user.googleId = profile.id;
+            await user.save();
+            return done(null, user);
+        }
+
+        const newUser = new User({
+            googleId: profile.id,
+            username: profile.displayName.replace(/\s+/g, '').toLowerCase() + Math.random().toString(36).substring(2, 6),
+            fullName: profile.displayName,
+            email: profile.emails[0].value,
+            avatar: profile.photos[0].value,
+        });
+        await newUser.save();
+        done(null, newUser);
+    } catch (err) { done(err, null); }
+  }
+));
+
 // --- EXPRESS APP & ROUTER ---
 const app = express();
 app.use(cors());
@@ -137,18 +175,77 @@ router.post('/users/signup', async (req, res) => {
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
 
+// AUTH ROUTES
 router.post('/users/signin', async (req, res) => {
-    const { username, password } = req.body;
+    const { login, password } = req.body; // 'login' can be username or email
     try {
-        const user = await User.findOne({ username });
+        const user = await User.findOne({ $or: [{ email: login }, { username: login }] });
         if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
+        if (!user.password) return res.status(400).json({ message: 'Please sign in with Google.' });
+        
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials.' });
-
-        // --- THIS IS THE KEY CHANGE ---
+        
         const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.json({ token });
+    } catch (err) { console.error(err); res.status(500).send('Server error'); }
+});
+
+// GOOGLE AUTH ROUTES
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
+router.get('/auth/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
+    const user = req.user;
+    const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
+    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
+    // Redirect to a frontend page that handles the token
+    res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
+});
+
+// PASSWORD RESET ROUTES
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const token = crypto.randomBytes(20).toString('hex');
+        const user = await User.findOne({ email: req.body.email });
+        if (!user) return res.status(404).json({ message: 'No user with that email exists.' });
+
+        user.passwordResetToken = token;
+        user.passwordResetExpires = Date.now() + 3600000; // 1 hour
+        await user.save();
+
+        const transporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
+        });
+        const mailOptions = {
+            to: user.email,
+            from: `Reelify Support <${process.env.EMAIL_USER}>`,
+            subject: 'Reelify Password Reset',
+            text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
+                  `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
+                  `${process.env.FRONTEND_URL}/reset-password/${token}\n\n` +
+                  `If you did not request this, please ignore this email and your password will remain unchanged.\n`
+        };
+
+        await transporter.sendMail(mailOptions);
+        res.json({ message: 'An e-mail has been sent with further instructions.' });
+    } catch (err) { console.error(err); res.status(500).send('Server error'); }
+});
+
+router.post('/reset-password/:token', async (req, res) => {
+    try {
+        const user = await User.findOne({
+            passwordResetToken: req.params.token,
+            passwordResetExpires: { $gt: Date.now() }
+        });
+        if (!user) return res.status(400).json({ message: 'Password reset token is invalid or has expired.' });
+
+        const salt = await bcrypt.genSalt(10);
+        user.password = await bcrypt.hash(req.body.password, salt);
+        user.passwordResetToken = undefined;
+        user.passwordResetExpires = undefined;
+        await user.save();
+        res.json({ message: 'Password has been updated.' });
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
 

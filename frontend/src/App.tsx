@@ -15,17 +15,21 @@ import Settings from './pages/Settings';
 import CampaignPageLayout from './pages/CampaignPageLayout';
 import CampaignPage from './pages/CampaignPage';
 import UserManagement from './pages/UserManagement';
-import AdminAnalytics from './pages/AdminAnalytics'; // Import the new page
+import AdminAnalytics from './pages/AdminAnalytics';
+import AuthCallback from './pages/AuthCallback'; // New
+import ForgotPassword from './pages/ForgotPassword'; // New
+import ResetPassword from './pages/ResetPassword'; // New
 
-if (localStorage.token) {
-  setAuthToken(localStorage.token);
-}
+if (localStorage.token) { setAuthToken(localStorage.token); }
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password/:token" element={<ResetPassword />} />
+      <Route path="/auth/callback" element={<AuthCallback />} /> {/* New route for Google callback */}
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<Navigate to="home" replace />} />
@@ -35,7 +39,7 @@ function App() {
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
         <Route path="users" element={<UserManagement />} />
-        <Route path="analytics" element={<AdminAnalytics />} /> {/* Add the final admin route */}
+        <Route path="analytics" element={<AdminAnalytics />} />
       </Route>
 
       <Route element={<CampaignPageLayout />}>
