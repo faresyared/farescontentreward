@@ -6,11 +6,13 @@ import { FullCampaign } from './CampaignDetailsModal';
 import Modal from './Modal';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
-// These are the types of channels an admin can create.
+// --- THIS IS THE KEY CHANGE ---
+// We have updated the list of available channels.
 const AVAILABLE_CHANNELS = [
-  { name: 'Updates', type: 'feed' },
+  { name: 'Updates', type: 'feed' }, // Your better name for Announcements
   { name: 'Chat', type: 'chat' },
-  { name: 'Leaderboard', type: 'leaderboard' },
+  { name: 'Creator Spotlight', type: 'spotlight' },
+  { name: 'Progress Tracker', type: 'progress' },
 ];
 
 interface ChannelManagerProps {
@@ -50,7 +52,6 @@ const ChannelManager: React.FC<ChannelManagerProps> = ({ campaign, isOpen, onClo
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={`Manage Channels for "${campaign.name}"`}>
       <div className="space-y-4">
-        {/* Add Channel Section */}
         <div className="flex items-center gap-2">
           <select 
             value={selectedChannelType}
@@ -64,7 +65,6 @@ const ChannelManager: React.FC<ChannelManagerProps> = ({ campaign, isOpen, onClo
           </button>
         </div>
 
-        {/* Current Channels List */}
         <div className="space-y-2">
           <h3 className="text-lg font-semibold text-gray-300">Current Channels</h3>
           {channels.length > 0 ? (
@@ -83,7 +83,6 @@ const ChannelManager: React.FC<ChannelManagerProps> = ({ campaign, isOpen, onClo
 
         {error && <p className="text-red-400 text-sm text-center">{error}</p>}
 
-        {/* Save Button */}
         <div className="flex justify-end pt-4">
           <button onClick={handleSaveChanges} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg">
             Save Changes

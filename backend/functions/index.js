@@ -28,10 +28,7 @@ const UserSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // --- THIS IS THE KEY BACKEND CHANGE ---
-const ChannelSchema = new mongoose.Schema({
-    name: { type: String, required: true }, // e.g., "Chat", "Updates", "Leaderboard"
-    type: { type: String, required: true }, // e.g., "chat", "feed", "leaderboard"
-});
+const ChannelSchema = new mongoose.Schema({ name: { type: String, required: true }, type: { type: String, required: true }, });
 
 const CampaignSchema = new mongoose.Schema({
     name: { type: String, required: true, unique: true },
