@@ -14,7 +14,8 @@ import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import CampaignPageLayout from './pages/CampaignPageLayout';
 import CampaignPage from './pages/CampaignPage';
-import UserManagement from './pages/UserManagement'; // Import the new page
+import UserManagement from './pages/UserManagement';
+import AdminAnalytics from './pages/AdminAnalytics'; // Import the new page
 
 if (localStorage.token) {
   setAuthToken(localStorage.token);
@@ -33,7 +34,8 @@ function App() {
         <Route path="earnings" element={<Earnings />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />
-        <Route path="users" element={<UserManagement />} /> {/* Add the new admin route */}
+        <Route path="users" element={<UserManagement />} />
+        <Route path="analytics" element={<AdminAnalytics />} /> {/* Add the final admin route */}
       </Route>
 
       <Route element={<CampaignPageLayout />}>

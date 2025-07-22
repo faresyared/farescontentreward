@@ -549,6 +549,32 @@ router.post('/transactions', [auth, adminAuth], async (req, res) => {
     }
 });
 
+// --- NEW ADMIN ANALYTICS ROUTE ---
+router.get('/admin/analytics', [auth, adminAuth], async (req, res) => {
+    try {
+        const totalUsers = await User.countDocuments();
+        const totalCampaigns = await Campaign.countDocuments();
+        const activeCampaigns = await Campaign.countDocuments({ status: 'Active' });
+        
+        // Calculate total revenue from all 'Earning' transactions
+        const revenueData = await Transaction.aggregate([
+            { $match: { type: 'Earning' } },
+            { $group: { _id: null, total: { $sum: '$amount' } } }
+        ]);
+        const totalRevenue = revenueData[0]?.total || 0;
+
+        res.json({
+            totalUsers,
+            totalCampaigns,
+            activeCampaigns,
+            totalRevenue
+        });
+    } catch (err) {
+        console.error("Error fetching analytics:", err);
+        res.status(500).send('Server Error');
+    }
+});
+
 
 // --- FINAL SETUP ---
 app.use('/api', router);
