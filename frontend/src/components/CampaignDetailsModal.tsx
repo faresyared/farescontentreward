@@ -1,5 +1,3 @@
-// frontend/src/components/CampaignDetailsModal.tsx
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -7,6 +5,7 @@ import Modal from './Modal';
 import { useAuth } from '../context/AuthContext';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
+import toast from 'react-hot-toast'; // Import toast for notifications
 
 export interface Channel {
   name: string;
@@ -24,7 +23,7 @@ export interface FullCampaign {
   isPrivate: boolean;
   participants: string[];
   waitlist: string[];
-  channels: Channel[]; // Add the channels array
+  channels: Channel[];
 }
 
 const statusStyles = { Active: 'bg-green-500/20 text-green-400 border-green-500/30', Ended: 'bg-gray-500/20 text-gray-400 border-gray-500/30', Soon: 'bg-blue-500/20 text-blue-400 border-blue-500/30', Paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', };
@@ -40,7 +39,24 @@ const CampaignDetailsModal: React.FC<{ campaign: FullCampaign; isOpen: boolean; 
   const isParticipant = user ? campaign.participants.includes(user.id) : false;
   const isOnWaitlist = user ? campaign.waitlist.includes(user.id) : false;
 
-  const handleJoin = async () => { try { await axios.post(`/api/campaigns/${campaign._id}/join`); onJoinSuccess(); onClose(); } catch (err) { console.error("Failed to join campaign", err); } };
+  const handleJoin = async () => {
+    try {
+      await axios.post(`/api/campaigns/${campaign._id}/join`);
+      toast.success(campaign.isPrivate ? 'Successfully joined the waitlist!' : 'Successfully joined the campaign!');
+      onJoinSuccess();
+      onClose();
+    } catch (err: any) {
+      // --- THIS IS THE FIX ---
+      // We now check for the specific error message from the backend.
+      if (err.response && err.response.data && err.response.data.msg) {
+        toast.error(err.response.data.msg);
+      } else {
+        toast.error('Failed to join campaign. Please try again.');
+      }
+      console.error("Failed to join campaign", err);
+    }
+  };
+  
   const navigateToCampaignPage = () => { navigate(`/dashboard/campaign/${campaign._id}`); };
 
   const renderJoinButton = () => {
