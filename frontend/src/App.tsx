@@ -4,6 +4,7 @@ import setAuthToken from './utils/setAuthToken';
 
 import SignIn from './pages/SignIn';
 import SignUp from './pages/SignUp';
+import VerifyAccount from './pages/VerifyAccount'; // Import the new page
 import Dashboard from './pages/Dashboard';
 import Home from './pages/Home';
 import Campaigns from './pages/Campaigns';
@@ -25,14 +26,15 @@ function App() {
     <Routes>
       <Route path="/" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
+      
+      {/* --- NEW ROUTE FOR CODE VERIFICATION --- */}
+      <Route path="/verify-account" element={<VerifyAccount />} />
+      
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
       
-      {/* --- NEW ROUTE FOR EMAIL VERIFICATION --- */}
-      {/* The page the user lands on after clicking the email link. */}
-      {/* It uses the same component as the Google callback. */}
-      <Route path="/verify-email/:token" element={<AuthCallback />} />
+      {/* The old /verify-email/:token route is no longer needed */}
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<Navigate to="home" replace />} />

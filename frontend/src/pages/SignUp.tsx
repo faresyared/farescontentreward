@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // Import useAuth again
+import toast from 'react-hot-toast';
 
 const SignUp = () => {
   const navigate = useNavigate();
-  const { login } = useAuth(); // Get the login function
   const [formData, setFormData] = useState({
     username: '',
     fullName: '',
@@ -39,11 +38,13 @@ const SignUp = () => {
     setError('');
 
     try {
-      // --- THIS IS THE FIX ---
-      // The backend now sends a token back on successful signup
       const res = await axios.post('/api/auth/signup', formData);
-      login(res.data.token); // Log the user in
-      navigate('/dashboard'); // Navigate to the dashboard
+      toast.success(res.data.message);
+      
+      // --- THIS IS THE CHANGE ---
+      // Redirect to the new verification page, passing the email along
+      navigate(`/verify-account?email=${email}`);
+
     } catch (err: any) {
       if (err.response && err.response.data.errors) {
         setError(err.response.data.errors[0].msg);
