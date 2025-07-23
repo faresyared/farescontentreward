@@ -1,5 +1,3 @@
-// frontend/src/App.tsx
-
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import setAuthToken from './utils/setAuthToken';
@@ -16,9 +14,9 @@ import CampaignPageLayout from './pages/CampaignPageLayout';
 import CampaignPage from './pages/CampaignPage';
 import UserManagement from './pages/UserManagement';
 import AdminAnalytics from './pages/AdminAnalytics';
-import AuthCallback from './pages/AuthCallback'; // New
-import ForgotPassword from './pages/ForgotPassword'; // New
-import ResetPassword from './pages/ResetPassword'; // New
+import AuthCallback from './pages/AuthCallback';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 
 if (localStorage.token) { setAuthToken(localStorage.token); }
 
@@ -28,8 +26,12 @@ function App() {
       <Route path="/" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password/:token" element={<ResetPassword />} />
-      <Route path="/auth/callback" element={<AuthCallback />} /> {/* New route for Google callback */}
+      
+      {/* --- THIS IS THE FIX --- */}
+      {/* The route no longer requires a :token in the URL. */}
+      <Route path="/reset-password" element={<ResetPassword />} />
+      
+      <Route path="/auth/callback" element={<AuthCallback />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<Navigate to="home" replace />} />
