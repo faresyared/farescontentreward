@@ -1,5 +1,3 @@
-// frontend/src/pages/SignIn.tsx
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -22,7 +20,9 @@ const SignIn = () => {
     setError('');
     if (!loginField || !password) { setError('Please fill in all fields.'); return; }
     try {
-      const res = await axios.post('/api/users/signin', { login: loginField, password });
+      // --- THIS IS THE FIX ---
+      // The URL has been changed to point to the correct auth route.
+      const res = await axios.post('/api/auth/signin', { login: loginField, password });
       login(res.data.token);
       navigate('/dashboard');
     } catch (err: any) {
@@ -31,7 +31,7 @@ const SignIn = () => {
   };
 
   const handleGoogleSuccess = () => {
-    // Redirect to the backend Google auth route
+    // This correctly redirects to the backend Google auth route
     window.location.href = '/api/auth/google';
   };
 
@@ -54,22 +54,22 @@ const SignIn = () => {
 
             <div>
               <label htmlFor="login" className="block text-sm font-medium text-gray-400">Username or Email</label>
-              <input type="text" name="login" value={loginField} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 ..."/>
+              <input type="text" name="login" value={loginField} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none"/>
             </div>
             <div>
               <label htmlFor="password" className="block text-sm font-medium text-gray-400">Password</label>
-              <input type="password" name="password" value={password} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 ..."/>
+              <input type="password" name="password" value={password} onChange={onChange} required className="mt-1 block w-full bg-gray-900/50 border border-gray-700 rounded-lg py-2 px-3 focus:ring-2 focus:ring-red-500 outline-none"/>
             </div>
-            {error && <div className="bg-red-500/20 ...">{error}</div>}
+            {error && <div className="bg-red-500/20 border border-red-500/30 text-red-300 text-sm rounded-lg p-3 text-center">{error}</div>}
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center">
-                <input id="remember-me" type="checkbox" className="h-4 w-4 ..."/>
+                <input id="remember-me" type="checkbox" className="h-4 w-4 text-red-600 bg-gray-800 border-gray-600 rounded focus:ring-red-500"/>
                 <label htmlFor="remember-me" className="ml-2 block text-gray-400">Keep me signed in</label>
               </div>
               <Link to="/forgot-password" className="font-medium text-red-500 hover:text-red-400">Forgot password?</Link>
             </div>
             <div>
-              <button type="button" onClick={handleSignInClick} className="w-full bg-red-600 ...">Sign In</button>
+              <button type="button" onClick={handleSignInClick} className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-4 rounded-lg transition duration-300 transform hover:scale-105 focus:outline-none focus:ring-4 focus:ring-red-500/50 shadow-lg shadow-red-500/20">Sign In</button>
             </div>
           </div>
           <p className="text-center text-sm text-gray-500 mt-8">
