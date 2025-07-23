@@ -1,5 +1,3 @@
-// src/pages/SignUp.tsx
-
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -41,13 +39,20 @@ const SignUp = () => {
     setError('');
 
     try {
-      const res = await axios.post('/api/users/signup', formData);
+      const res = await axios.post('/api/auth/signup', formData); // Corrected URL
       login(res.data.token);
       navigate('/dashboard');
     } catch (err: any) {
-      if (err.response && err.response.data.message) {
+      // --- THIS IS THE CHANGE ---
+      // Check if the error response has the specific 'errors' array format
+      if (err.response && err.response.data.errors) {
+        // Get the message from the first error in the array
+        setError(err.response.data.errors[0].msg);
+      } else if (err.response && err.response.data.message) {
+        // Handle the old 'message' format (e.g., "User already exists")
         setError(err.response.data.message);
       } else {
+        // Handle any other unexpected errors
         setError('An unexpected error occurred. Please try again.');
       }
     }
