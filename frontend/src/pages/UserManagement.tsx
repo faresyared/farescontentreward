@@ -1,5 +1,3 @@
-// frontend/src/pages/UserManagement.tsx
-
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { format } from 'date-fns';
@@ -21,7 +19,9 @@ const UserManagement = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        const res = await axios.get('/api/users');
+        // --- THIS IS THE FIX ---
+        // The URL now correctly points to the admin route.
+        const res = await axios.get('/api/admin/users');
         setUsers(res.data);
       } catch (err) {
         console.error("Failed to fetch users", err);
@@ -34,7 +34,9 @@ const UserManagement = () => {
 
   const handleUpdateUser = async (userId: string, data: { role?: string; isActive?: boolean }) => {
     try {
-      const res = await axios.put(`/api/users/${userId}`, data);
+      // --- THIS IS ALSO FIXED ---
+      // The update URL also needs to point to the admin route.
+      const res = await axios.put(`/api/admin/users/${userId}`, data);
       setUsers(users.map(u => u._id === userId ? res.data : u));
     } catch (err) {
       console.error("Failed to update user", err);

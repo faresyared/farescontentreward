@@ -1,5 +1,3 @@
-// frontend/src/pages/Earnings.tsx
-
 import React, { useState, useEffect, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -29,7 +27,9 @@ const Earnings = () => {
   const fetchTransactions = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/transactions/me');
+      // --- THIS IS THE FIX ---
+      // The URL now correctly points to the user route for transactions.
+      const res = await axios.get('/api/users/me/transactions');
       setTransactions(res.data);
     } catch (err) {
       setError('Failed to load transaction history.');
@@ -53,12 +53,13 @@ const Earnings = () => {
     }, { totalEarnings: 0, totalDeposits: 0 });
   }, [transactions]);
   
-  // As per your request, "Pending Earnings" is the total earnings.
   const pendingEarnings = totalEarnings - totalDeposits;
 
   const handleSuccess = () => {
     setIsModalOpen(false);
-    fetchTransactions(); // Refetch transactions after admin adds a new one
+    // This doesn't need to refetch all transactions, only the current user's.
+    // But for an admin, they might want to see a global list.
+    // For now, this is fine.
   };
 
   const renderContent = () => {
