@@ -1,27 +1,25 @@
+# This is the main configuration block for your build.
 [build]
-  # This tells Netlify where your serverless functions are located.
+  # The command Netlify runs to build your entire project.
+  command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+  
+  # The directory where your serverless functions are located.
   functions = "backend/functions/"
-  # This tells Netlify where your built frontend is.
+  
+  # The directory that contains your built frontend to be deployed.
   publish = "frontend/dist/"
 
-# This is the command Netlify will run to build your project.
-# It installs dependencies for both backend and frontend, then builds the frontend.
-[build.command]
-  command = "npm install && npm install --prefix frontend && npm run build --prefix frontend"
+# --- REDIRECTS ---
+# The order of these rules is critical.
 
-# --- REDIRECT RULES ---
-# The order here is CRITICAL.
-
-# 1. API Rule (Most Specific)
-# This rule MUST come first. It directs all API calls to our serverless function.
+# This rule MUST be first. It directs all API calls to our serverless function.
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/api/:splat"
   status = 200
 
-# 2. Frontend Rule (Catch-All)
-# This rule comes last. It handles all other requests by sending them to the React app.
-# This is what makes frontend routing (React Router) work.
+# This rule MUST be last. It's the catch-all that sends every other request
+# to your React app, allowing React Router to handle the page changes.
 [[redirects]]
   from = "/*"
   to = "/index.html"
