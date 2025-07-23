@@ -1,49 +1,39 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const serverless = require('serverless-http');
 const cors = require('cors');
-const authRoutes = require('../routes/authRoutes');
-const campaignRoutes = require('../routes/campaignRoutes');
-const postRoutes = require('../routes/postRoutes');
+const connectDB = require('./db');
 
-// --- DATABASE CONNECTION ---
-let isConnected;
-async function connectDB() {
-    if (isConnected) return;
-    try {
-        console.log("Connecting to MongoDB...");
-        await mongoose.connect(process.env.MONGODB_URI);
-        isConnected = true;
-        console.log("MongoDB Connected");
-    } catch (err) {
-        console.error('MongoDB Connection Failed:', err);
-    }
-}
-
-// --- EXPRESS APP ---
+// --- EXPRESS APP SETUP ---
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// Use routes
+// --- IMPORT ALL ROUTE FILES ---
+const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
+const campaignRoutes = require('./routes/campaignRoutes');
+const postRoutes = require('./routes/postRoutes');
+const adminRoutes = require('./routes/adminRoutes');
+
+// --- USE ROUTES WITH PREFIXES ---
+// This tells Express how to direct incoming requests.
+// e.g., a request to '/api/posts/...' will be handled by postRoutes.
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/admin', adminRoutes);
 
-// Serverless handler
+// --- NETLIFY HANDLER ---
 const handler = serverless(app);
 
 module.exports.handler = async (event, context) => {
-    console.log("Handler triggered");
+    // This line allows waiting for connections to close before finishing.
     context.callbackWaitsForEmptyEventLoop = false;
-    try {
-        await connectDB();
-        return await handler(event, context);
-    } catch (err) {
-        console.error("Error in function execution:", err);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({ message: 'Internal Server Error', error: err.message })
-        };
-    }
+    
+    // Connect to the database before handling the request
+    await connectDB();
+    
+    // Handle the request using our Express app
+    return await handler(event, context);
 };
