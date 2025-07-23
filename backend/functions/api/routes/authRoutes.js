@@ -9,26 +9,28 @@ const User = require('../models/userModel');
 const passport = require('../middleware/passport');
 const router = express.Router();
 
-// --- CHANGE 1: Import validation tools ---
 const { body, validationResult } = require('express-validator');
 
-// --- CHANGE 2: Add validation rules to the signup route ---
 router.post('/signup',
-  [ // This array holds all our validation rules
+  [
     body('fullName', 'Full name is required').not().isEmpty().trim().escape(),
     body('username', 'Username is required').not().isEmpty().trim().escape(),
-    body('email', 'Please include a valid email').isEmail().normalizeEmail(),
+    
+    // --- THIS IS THE FIX ---
+    // We add the `require_tld` and `allow_dns_wildcards` options.
+    // This will now reject emails from domains like "example.com" that don't have a real mail server.
+    body('email', 'Please include a valid, deliverable email address')
+      .isEmail({ require_tld: true, allow_dns_wildcards: false })
+      .normalizeEmail(),
+      
     body('password', 'Password must be at least 6 characters').isLength({ min: 6 })
   ],
   async (req, res) => {
-    // --- CHANGE 3: Check for validation errors ---
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      // If there are errors, send a 400 Bad Request response with the errors
       return res.status(400).json({ errors: errors.array() });
     }
 
-    // If validation passes, the original logic runs
     const { username, fullName, email, password } = req.body;
     try {
         let user = await User.findOne({ email });
