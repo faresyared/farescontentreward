@@ -17,7 +17,6 @@ const Navbar = () => {
   const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) => `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${ isActive ? 'bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }`;
 
   return (
-    // The Fragment <> is still here, but the banner inside it is gone.
     <>
       <nav className="sticky top-0 z-40 bg-black/70 backdrop-blur-xl border-b border-gray-800/50">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
@@ -96,7 +95,7 @@ const Navbar = () => {
                         </React.Fragment>
                       )}
                       <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/profile" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <UserIcon className="h-5 w-5" /> Edit Profile </NavLink> )} </Menu.Item>
-                      <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="h-5 w-5" /> Settings </NavLink> )} </Menu.Item>
+                      <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings </NavLink> )} </Menu.Item>
                       <div className="my-1 h-px bg-gray-700/50" />
                       <Menu.Item> {({ active }) => ( <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )} </Menu.Item>
                     </div>
