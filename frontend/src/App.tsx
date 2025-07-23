@@ -26,12 +26,13 @@ function App() {
       <Route path="/" element={<SignIn />} />
       <Route path="/signup" element={<SignUp />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
-      
-      {/* --- THIS IS THE FIX --- */}
-      {/* The route no longer requires a :token in the URL. */}
       <Route path="/reset-password" element={<ResetPassword />} />
-      
       <Route path="/auth/callback" element={<AuthCallback />} />
+      
+      {/* --- NEW ROUTE FOR EMAIL VERIFICATION --- */}
+      {/* The page the user lands on after clicking the email link. */}
+      {/* It uses the same component as the Google callback. */}
+      <Route path="/verify-email/:token" element={<AuthCallback />} />
 
       <Route path="/dashboard" element={<Dashboard />}>
         <Route index element={<Navigate to="home" replace />} />

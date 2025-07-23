@@ -2,10 +2,12 @@ const express = require('express');
 console.log('campaignRoutes.js: File loaded');
 
 const Campaign = require('../models/campaignModel');
+// --- CHANGE 1: Import the User model ---
+const User = require('../models/userModel'); 
 const { auth, adminAuth } = require('../middleware/auth');
 const router = express.Router();
 
-// GET all campaigns (with filters)
+// ... (GET, POST, PUT, DELETE routes for campaigns are unchanged)
 router.get('/', auth, async (req, res) => {
     try {
         const { search, platform, type } = req.query;
@@ -26,8 +28,6 @@ router.get('/', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
-// GET a single campaign by ID
 router.get('/:id', auth, async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);
@@ -37,8 +37,6 @@ router.get('/:id', auth, async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
-// POST (create) a new campaign (Admin Only)
 router.post('/', [auth, adminAuth], async (req, res) => {
     try {
         const newCampaign = new Campaign(req.body);
@@ -52,8 +50,6 @@ router.post('/', [auth, adminAuth], async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
-// PUT (update) a campaign (Admin Only)
 router.put('/:id', [auth, adminAuth], async (req, res) => {
     try {
         let campaign = await Campaign.findById(req.params.id);
@@ -64,8 +60,6 @@ router.put('/:id', [auth, adminAuth], async (req, res) => {
         res.status(500).send('Server Error');
     }
 });
-
-// DELETE a campaign (Admin Only)
 router.delete('/:id', [auth, adminAuth], async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);
@@ -80,28 +74,39 @@ router.delete('/:id', [auth, adminAuth], async (req, res) => {
     }
 });
 
-// POST to join a campaign or add to waitlist
+// --- UPDATED JOIN ROUTE ---
 router.post('/:id/join', auth, async (req, res) => {
     try {
+        // --- CHANGE 2: Find the user who is making the request ---
+        const user = await User.findById(req.user.id);
+        if (!user) {
+            return res.status(404).json({ msg: 'User not found' });
+        }
+
+        // --- CHANGE 3: Add the verification check ---
+        // If the user is not verified, block them from joining.
+        if (!user.isVerified) {
+            return res.status(403).json({ msg: 'You must verify your email before joining a campaign.' });
+        }
+
         const campaign = await Campaign.findById(req.params.id);
-        const userId = req.user.id;
         if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
         
-        if (campaign.participants.includes(userId) || campaign.waitlist.includes(userId)) {
+        if (campaign.participants.includes(user.id) || campaign.waitlist.includes(user.id)) {
             return res.status(400).json({ msg: 'User already in campaign or on waitlist' });
         }
         
         if (campaign.isPrivate) {
-            campaign.waitlist.push(userId);
+            campaign.waitlist.push(user.id);
         } else {
-            campaign.participants.push(userId);
+            campaign.participants.push(user.id);
         }
         await campaign.save();
         res.json(campaign);
     } catch (err) { console.error(err); res.status(500).send('Server Error'); }
 });
 
-// POST to approve a user from waitlist (Admin Only)
+// ... (Approve route is unchanged)
 router.post('/:id/approve/:userId', [auth, adminAuth], async (req, res) => {
     try {
         const campaign = await Campaign.findById(req.params.id);
