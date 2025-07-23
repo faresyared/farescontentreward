@@ -28,7 +28,7 @@ router.post('/signup', async (req, res) => {
 
 // Signin
 router.post('/signin', async (req, res) => {
-    const { login, password } = req.body; // 'login' can be username or email
+    const { login, password } = req.body;
     try {
         const user = await User.findOne({ $or: [{ email: login }, { username: login }] });
         if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
@@ -71,8 +71,8 @@ router.post('/forgot-password', async (req, res) => {
         });
         const mailOptions = {
             to: user.email,
-            from: `YourApp Support <${process.env.EMAIL_USER}>`,
-            subject: 'YourApp Password Reset',
+            from: `Reelify Support <${process.env.EMAIL_USER}>`,
+            subject: 'Reelify Password Reset',
             text: `You are receiving this because you (or someone else) have requested the reset of the password for your account.\n\n` +
                   `Please click on the following link, or paste this into your browser to complete the process:\n\n` +
                   `${process.env.FRONTEND_URL}/reset-password/${token}\n\n` +
