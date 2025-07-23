@@ -1,6 +1,4 @@
 const express = require('express');
-console.log('userRoutes.js: File loaded');
-
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const Campaign = require('../models/campaignModel');
@@ -37,8 +35,16 @@ router.put('/me', auth, async (req, res) => {
         
         await user.save();
         
+        // --- THIS IS THE FIX ---
+        // Ensure the new token includes the verification status
         const payload = {
-            user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar }
+            user: { 
+                id: user.id, 
+                role: user.role, 
+                username: user.username, 
+                avatar: user.avatar,
+                isVerified: user.isVerified // Add this line
+            }
         };
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
 

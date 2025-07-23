@@ -8,6 +8,19 @@ const passport = require('../middleware/passport');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
 
+// A helper function to create the JWT payload
+const createTokenPayload = (user) => {
+  return {
+    user: {
+      id: user.id,
+      role: user.role,
+      username: user.username,
+      avatar: user.avatar,
+      isVerified: user.isVerified // IMPORTANT: Include verification status
+    }
+  };
+};
+
 // --- UPDATED SIGNUP ROUTE ---
 router.post('/signup',
   [
@@ -31,20 +44,15 @@ router.post('/signup',
 
         const verificationToken = crypto.randomBytes(32).toString('hex');
         
-        user = new User({
-            username,
-            fullName,
-            email,
-            password,
-            verificationToken // Save the token
-        });
+        user = new User({ username, fullName, email, password, verificationToken });
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();
         
-        // --- Send Verification Email ---
-        const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
+        // --- FIX 1: The verification URL now points to the backend API ---
+        const verificationUrl = `${process.env.FRONTEND_URL}/api/auth/verify-email/${verificationToken}`;
+        
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS }
@@ -53,37 +61,33 @@ router.post('/signup',
             to: user.email,
             from: `Reelify Support <${process.env.EMAIL_USER}>`,
             subject: 'Please Verify Your Reelify Account',
-            text: `Thank you for signing up! Please click the following link to verify your email address:\n\n` +
-                  `${verificationUrl}\n\n` +
-                  `If you did not create an account, please ignore this email.\n`
+            text: `Thank you for signing up! Please click the following link to verify your email address:\n\n${verificationUrl}\n\nIf you did not create an account, please ignore this email.\n`
         };
         await transporter.sendMail(mailOptions);
 
-        // --- IMPORTANT: Do NOT log the user in. Send a success message. ---
-        res.status(201).json({ message: 'Registration successful! Please check your email to verify your account.' });
+        // --- FIX 2: Log the user in immediately after signup ---
+        const payload = createTokenPayload(user);
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
+        res.status(201).json({ token });
 
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
 
-// --- NEW ROUTE TO HANDLE EMAIL VERIFICATION ---
+// --- NEW VERIFICATION ROUTE (Works correctly now) ---
 router.get('/verify-email/:token', async (req, res) => {
     try {
-        const token = req.params.token;
-        const user = await User.findOne({ verificationToken: token });
-
+        const user = await User.findOne({ verificationToken: req.params.token });
         if (!user) {
             return res.status(400).send('Verification link is invalid or has expired.');
         }
 
         user.isVerified = true;
-        user.verificationToken = undefined; // Clear the token
+        user.verificationToken = undefined;
         await user.save();
 
-        // Optional: Automatically log the user in after verification
-        const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
+        const payload = createTokenPayload(user);
         const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         
-        // Redirect to a frontend page that handles the login
         res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${jwtToken}`);
 
     } catch (err) {
@@ -92,38 +96,39 @@ router.get('/verify-email/:token', async (req, res) => {
     }
 });
 
-
-// ... (The rest of the routes: signin, google, password reset, etc. remain the same)
+// --- UPDATED SIGNIN ROUTE ---
 router.post('/signin', async (req, res) => {
     const { login, password } = req.body;
     try {
         const user = await User.findOne({ $or: [{ email: login }, { username: login }] });
         if (!user) return res.status(400).json({ message: 'Invalid credentials.' });
 
-        // --- ADDED CHECK: Make sure user is verified ---
-        if (!user.isVerified) {
-            return res.status(401).json({ message: 'Please verify your email address before signing in.' });
-        }
+        // --- FIX 3: REMOVED the verification check. Unverified users can now log in. ---
 
         if (!user.password) return res.status(400).json({ message: 'Please sign in with Google.' });
         
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) return res.status(400).json({ message: 'Invalid credentials.' });
         
-        const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
+        const payload = createTokenPayload(user);
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
         res.json({ token });
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
+
+// --- UPDATED GOOGLE ROUTE ---
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
-router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), (req, res) => {
+router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), async (req, res) => {
     const user = req.user;
     user.isVerified = true; // Google users are automatically verified
-    user.save();
-    const payload = { user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar } };
+    await user.save();
+    
+    const payload = createTokenPayload(user);
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
 });
+
+// ... (Password reset routes are unchanged)
 router.post('/forgot-password', async (req, res) => {
     try {
         const code = Math.floor(100000 + Math.random() * 900000).toString();

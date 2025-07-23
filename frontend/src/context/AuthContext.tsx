@@ -1,5 +1,3 @@
-// frontend/src/context/AuthContext.tsx
-
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
@@ -11,6 +9,7 @@ interface AuthUser {
   role: 'user' | 'admin';
   username: string;
   avatar: string;
+  isVerified: boolean; // Add this field
 }
 
 interface AuthContextType {
@@ -19,8 +18,8 @@ interface AuthContextType {
   login: (token: string) => void;
   logout: () => void;
   loading: boolean;
-  joinedCampaigns: FullCampaign[]; // Renamed from savedCampaigns
-  fetchJoinedCampaigns: () => Promise<void>; // Expose the fetch function
+  joinedCampaigns: FullCampaign[];
+  fetchJoinedCampaigns: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -34,7 +33,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const fetchJoinedCampaigns = useCallback(async () => {
     if (localStorage.token) {
         try {
-            // Call the new backend route
             const res = await axios.get('/api/users/me/joined');
             setJoinedCampaigns(res.data);
         } catch (err) {
@@ -67,7 +65,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('token', newToken);
     const decodedToken: { user: AuthUser } = jwtDecode(newToken);
     setToken(newToken);
-    setUser(decodedToken.user);
+    setUser(decodedToken.user); // The user object now includes isVerified
     setAuthToken(newToken);
     fetchJoinedCampaigns();
   };
@@ -77,7 +75,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setToken(null);
     setUser(null);
     setAuthToken(null);
-    setJoinedCampaigns([]); // Clear joined campaigns on logout
+    setJoinedCampaigns([]);
   };
 
   return (
