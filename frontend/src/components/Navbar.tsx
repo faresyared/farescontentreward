@@ -1,45 +1,8 @@
-import React, { Fragment, useState } from 'react';
+import React, { Fragment } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, Cog6ToothIcon, UserIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon, ChartBarIcon, ExclamationTriangleIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, Cog6ToothIcon, UserIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon, ChartBarIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { Menu, Transition } from '@headlessui/react';
-import axios from 'axios';
-import toast from 'react-hot-toast'; // We'll use toasts for feedback
-
-// New Verification Banner Component with Resend Button
-const VerificationBanner = () => {
-  const [resendStatus, setResendStatus] = useState('idle'); // 'idle', 'sending', 'sent'
-
-  const handleResend = async () => {
-    setResendStatus('sending');
-    try {
-      const res = await axios.post('/api/auth/resend-verification');
-      toast.success(res.data.message);
-      setResendStatus('sent');
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to resend email.');
-      setResendStatus('idle');
-    }
-  };
-
-  return (
-    <div className="bg-yellow-500/20 text-yellow-300 text-center p-2 text-sm flex items-center justify-center gap-4">
-      <div className="flex items-center gap-2">
-        <ExclamationTriangleIcon className="h-5 w-5" />
-        <span>Please check your email to verify your account and unlock all features.</span>
-      </div>
-      <button
-        onClick={handleResend}
-        disabled={resendStatus !== 'idle'}
-        className="bg-yellow-400/20 hover:bg-yellow-400/40 text-white font-bold py-1 px-3 rounded-md text-xs transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {resendStatus === 'idle' && 'Resend Email'}
-        {resendStatus === 'sending' && 'Sending...'}
-        {resendStatus === 'sent' && 'Sent!'}
-      </button>
-    </div>
-  );
-};
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -54,10 +17,8 @@ const Navbar = () => {
   const desktopNavLinkClass = ({ isActive }: { isActive: boolean }) => `flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-300 ${ isActive ? 'bg-red-500/10 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.4)]' : 'text-gray-400 hover:bg-gray-800/50 hover:text-white' }`;
 
   return (
+    // The Fragment <> is still here, but the banner inside it is gone.
     <>
-      {user && !user.isVerified && <VerificationBanner />}
-      
-      {/* The 'sticky' and 'top-0' classes make the navbar stick to the top */}
       <nav className="sticky top-0 z-40 bg-black/70 backdrop-blur-xl border-b border-gray-800/50">
         <div className="max-w-full mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -135,7 +96,7 @@ const Navbar = () => {
                         </React.Fragment>
                       )}
                       <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/profile" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <UserIcon className="h-5 w-5" /> Edit Profile </NavLink> )} </Menu.Item>
-                      <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings </NavLink> )} </Menu.Item>
+                      <Menu.Item> {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="h-5 w-5" /> Settings </NavLink> )} </Menu.Item>
                       <div className="my-1 h-px bg-gray-700/50" />
                       <Menu.Item> {({ active }) => ( <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )} </Menu.Item>
                     </div>
