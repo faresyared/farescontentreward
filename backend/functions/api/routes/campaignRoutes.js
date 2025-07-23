@@ -1,4 +1,6 @@
 const express = require('express');
+console.log('campaignRoutes.js: File loaded');
+
 const Campaign = require('../models/campaignModel');
 const { auth, adminAuth } = require('../middleware/auth');
 const router = express.Router();
@@ -96,4 +98,21 @@ router.post('/:id/join', auth, async (req, res) => {
         }
         await campaign.save();
         res.json(campaign);
-    } catch (err) { console.error(err); res.status(50
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+});
+
+// POST to approve a user from waitlist (Admin Only)
+router.post('/:id/approve/:userId', [auth, adminAuth], async (req, res) => {
+    try {
+        const campaign = await Campaign.findById(req.params.id);
+        if (!campaign) return res.status(404).json({ msg: 'Campaign not found' });
+        
+        const userToApprove = req.params.userId;
+        campaign.waitlist.pull(userToApprove);
+        campaign.participants.push(userToApprove);
+        await campaign.save();
+        res.json(campaign);
+    } catch (err) { console.error(err); res.status(500).send('Server Error'); }
+});
+
+module.exports = router;

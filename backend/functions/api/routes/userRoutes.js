@@ -1,4 +1,6 @@
 const express = require('express');
+console.log('userRoutes.js: File loaded');
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/userModel');
 const Campaign = require('../models/campaignModel');

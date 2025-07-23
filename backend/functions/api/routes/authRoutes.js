@@ -1,4 +1,6 @@
 const express = require('express');
+console.log('authRoutes.js: File loaded');
+
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');

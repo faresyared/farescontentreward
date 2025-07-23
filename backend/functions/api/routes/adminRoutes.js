@@ -1,4 +1,6 @@
 const express = require('express');
+console.log('adminRoutes.js: File loaded');
+
 const User = require('../models/userModel');
 const Campaign = require('../models/campaignModel');
 const Transaction = require('../models/transactionModel');

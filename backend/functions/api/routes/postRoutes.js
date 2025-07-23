@@ -1,4 +1,6 @@
 const express = require('express');
+console.log('postRoutes.js: File loaded');
+
 const Post = require('../models/postModel');
 const User = require('../models/userModel');
 const { auth, adminAuth } = require('../middleware/auth');
