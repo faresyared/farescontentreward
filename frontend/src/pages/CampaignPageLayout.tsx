@@ -1,36 +1,34 @@
-// frontend/src/pages/CampaignPageLayout.tsx
-
 import React from 'react';
-import { Outlet, NavLink } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import MobileNav from '../components/MobileNav'; // Import the MobileNav
 import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
 const CampaignPageLayout = () => {
-  // --- THIS IS THE KEY FIX ---
-  // We are now asking the context for `joinedCampaigns`, which is the correct name.
   const { joinedCampaigns } = useAuth();
 
   return (
-    <div className="min-h-screen bg-black font-sans text-gray-300 overflow-hidden">
+    // --- THIS IS THE NEW LAYOUT STRUCTURE ---
+    <div className="h-screen flex flex-col bg-black font-sans text-gray-300">
       <div className="fixed inset-0 overflow-hidden -z-10">
         <div className="absolute top-0 left-0 w-72 h-72 bg-red-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob"></div>
         <div className="absolute top-0 right-0 w-72 h-72 bg-pink-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
         <div className="absolute bottom-20 left-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
       </div>
 
+      {/* Navbar is the first item in the flex column. It will not scroll. */}
       <Navbar />
       
-      <div className="flex">
-        <aside className="hidden lg:block fixed top-16 left-0 z-30 h-[calc(100vh-4rem)] w-64 bg-black/10 border-r border-gray-800/50 p-4">
+      {/* This container takes up the rest of the screen height and handles its own overflow */}
+      <div className="flex flex-1 overflow-hidden">
+        <aside className="hidden lg:block w-64 bg-black/10 border-r border-gray-800/50 p-4 overflow-y-auto">
           <div className="flex items-center gap-2 text-gray-400 mb-4">
               <BookmarkIcon className="h-6 w-6 text-red-500" />
               <h2 className="text-lg font-bold">Joined Campaigns</h2>
           </div>
           <div className="mt-4 space-y-1">
-            {/* --- THIS IS THE KEY FIX --- */}
-            {/* We now correctly check `joinedCampaigns.length` */}
             {joinedCampaigns.length > 0 ? (
               joinedCampaigns.map(campaign => (
                 <SavedCampaignItem key={campaign._id} campaign={campaign} />
@@ -41,12 +39,16 @@ const CampaignPageLayout = () => {
           </div>
         </aside>
         
-        <main className="flex-grow lg:pl-64">
+        {/* The main content area is now the ONLY part that scrolls vertically */}
+        <main className="flex-1 overflow-y-auto">
           <div className="p-4 sm:p-6 lg:p-8 pb-20">
             <Outlet />
           </div>
         </main>
       </div>
+
+      {/* Render the mobile nav here, at the top level, so it's not clipped */}
+      <MobileNav />
     </div>
   );
 };
