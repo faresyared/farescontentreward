@@ -1,7 +1,7 @@
 import React, { Fragment } from 'react';
 import { Outlet } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import MobileNav from '../components/MobileNav'; // Import the new component
+import MobileNav from '../components/MobileNav';
 import SavedCampaignItem from '../components/SavedCampaignItem';
 import { BookmarkIcon, SignalIcon, ChatBubbleBottomCenterTextIcon } from '@heroicons/react/24/solid';
 import { Popover, Transition } from '@headlessui/react';
@@ -44,11 +44,11 @@ const Dashboard = () => {
         </main>
       </div>
 
-      {/* --- THIS IS THE FIX --- */}
-      {/* Render the mobile nav here, at the top level, so it's not clipped */}
       <MobileNav />
 
-      {/* Floating action buttons */}
+      {/* --- FLOATING ACTION BUTTONS --- */}
+
+      {/* Livestreams Button */}
       <div className="fixed top-24 right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-all outline-none">
@@ -64,6 +64,34 @@ const Dashboard = () => {
           </Transition>
         </Popover>
       </div>
+      
+      {/* --- THIS IS THE FIX: The mobile "Joined Campaigns" button has been added back --- */}
+      <div className="fixed top-40 right-5 z-50 block lg:hidden">
+        <Popover className="relative">
+          <Popover.Button className="h-12 w-12 bg-gray-800/50 backdrop-blur-md border border-gray-700/50 rounded-full flex items-center justify-center text-gray-400 hover:bg-red-500/20 transition-all outline-none">
+              <BookmarkIcon className="h-6 w-6" />
+          </Popover.Button>
+          <Transition as={Fragment} enter="transition ease-out duration-200" enterFrom="opacity-0 translate-y-1" enterTo="opacity-100 translate-y-0" leave="transition ease-in duration-150" leaveFrom="opacity-100 translate-y-0" leaveTo="opacity-0 translate-y-1">
+              <Popover.Panel className="absolute right-0 mt-2 w-72 bg-gray-900 border border-gray-700/50 rounded-xl shadow-lg p-4">
+                  <div className="flex items-center gap-2 text-gray-400 mb-2">
+                      <BookmarkIcon className="h-6 w-6 text-red-500" />
+                      <h2 className="text-lg font-bold">Joined Campaigns</h2>
+                  </div>
+                  <div className="mt-4 space-y-1">
+                    {joinedCampaigns.length > 0 ? (
+                        joinedCampaigns.map(campaign => (
+                            <SavedCampaignItem key={campaign._id} campaign={campaign} />
+                        ))
+                    ) : (
+                        <p className="text-gray-500 text-sm text-center mt-4">You haven't joined any campaigns yet.</p>
+                    )}
+                  </div>
+              </Popover.Panel>
+          </Transition>
+        </Popover>
+      </div>
+
+      {/* Live Chat Button */}
       <div className="fixed bottom-20 left-5 md:left-auto md:right-5 z-50">
         <Popover className="relative">
           <Popover.Button className="h-16 w-16 bg-red-600 shadow-lg shadow-red-500/30 rounded-full flex items-center justify-center text-white hover:bg-red-700 transition-transform hover:scale-110 outline-none">
