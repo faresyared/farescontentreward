@@ -3,13 +3,7 @@ Connected Accounts -
 or
 Social Media Handle Verification via Web Scraping
 ---
-can join with email and username
----
 server
---
-join with google - https://console.cloud.google.com/apis/dashboard?inv=1&invt=Ab3XfA&project=gen-lang-client-0555333705
----
-forget password - https://onboarding.brevo.com/account/register/profile
 ----
 chats
 --

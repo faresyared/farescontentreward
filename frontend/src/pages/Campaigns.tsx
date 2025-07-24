@@ -1,5 +1,3 @@
-// frontend/src/pages/Campaigns.tsx
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
@@ -12,7 +10,7 @@ import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
 const Campaigns = () => {
-  const { user, fetchJoinedCampaigns } = useAuth(); // Get the refetch function
+  const { user, fetchJoinedCampaigns } = useAuth();
   const isAdmin = user?.role === 'admin';
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -66,7 +64,11 @@ const Campaigns = () => {
 
   const handleCardClick = (campaign: FullCampaign) => {
     const isParticipant = user ? campaign.participants.includes(user.id) : false;
-    if (isParticipant) {
+    
+    // --- THIS IS THE FIX ---
+    // If the user is an admin OR a participant, navigate directly to the campaign page.
+    // Otherwise, show the details modal for them to join.
+    if (isAdmin || isParticipant) {
       navigate(`/dashboard/campaign/${campaign._id}`);
     } else {
       setSelectedCampaign(campaign);
@@ -75,8 +77,8 @@ const Campaigns = () => {
   };
 
   const handleJoinSuccess = () => {
-    fetchCampaigns(); // Refetch the list of all campaigns
-    fetchJoinedCampaigns(); // Refetch the user's joined campaigns for the sidebar
+    fetchCampaigns();
+    fetchJoinedCampaigns();
   };
 
   const handleFormSuccess = (updatedCampaign: FullCampaign) => { if (campaignToEdit) { setCampaigns(campaigns.map(c => c._id === updatedCampaign._id ? updatedCampaign : c)); } else { setCampaigns([updatedCampaign, ...campaigns]); } setIsFormModalOpen(false); setCampaignToEdit(null); };

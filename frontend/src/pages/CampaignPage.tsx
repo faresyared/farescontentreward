@@ -1,18 +1,10 @@
-// frontend/src/pages/CampaignPage.tsx
-
 import React, { useState, useEffect } from 'react';
-import { useParams, NavLink } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { FullCampaign, Channel } from '../components/CampaignDetailsModal';
+import { FullCampaign } from '../components/CampaignDetailsModal';
 import ChannelManager from '../components/ChannelManager';
-import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
-import { FaXTwitter } from "react-icons/fa6";
 import { Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
-
-const platformIcons = { YouTube: <FaYoutube />, X: <FaXTwitter />, Instagram: <FaInstagram />, TikTok: <FaTiktok />, };
-const statusStyles = { Active: 'bg-green-500/20 text-green-400 border-green-500/30', Ended: 'bg-gray-500/20 text-gray-400 border-gray-500/30', Soon: 'bg-blue-500/20 text-blue-400 border-blue-500/30', Paused: 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30', };
-const DetailItem: React.FC<{ label: string; value?: string | number }> = ({ label, value }) => ( <div> <p className="text-sm text-gray-400">{label}</p> <p className="text-lg font-semibold text-white">{value || 'N/A'}</p> </div> );
 
 const CampaignPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,13 +17,18 @@ const CampaignPage = () => {
 
   useEffect(() => {
     const fetchCampaign = async () => {
+      if (!id) return;
+      setLoading(true);
       try {
         const res = await axios.get(`/api/campaigns/${id}`);
         setCampaign(res.data);
-      } catch (err) { console.error("Failed to fetch campaign details", err); } 
-      finally { setLoading(false); }
+      } catch (err) { 
+        console.error("Failed to fetch campaign details", err); 
+      } finally { 
+        setLoading(false); 
+      }
     };
-    if (id) { fetchCampaign(); }
+    fetchCampaign();
   }, [id]);
 
   if (loading) return <p className="text-center text-gray-400">Loading Campaign...</p>;
@@ -39,6 +36,7 @@ const CampaignPage = () => {
 
   return (
     <>
+      {/* The ChannelManager modal, only rendered for admins */}
       {isAdmin && (
         <ChannelManager 
           campaign={campaign}
@@ -51,11 +49,15 @@ const CampaignPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Left side: Channels */}
         <div className="lg:col-span-1 space-y-6">
-            <div className="p-4 bg-gray-900/50 rounded-xl">
+            <div className="p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-white">Channels</h3>
                     {isAdmin && (
-                        <button onClick={() => setIsChannelManagerOpen(true)} className="p-2 rounded-full hover:bg-gray-700/50">
+                        <button 
+                          onClick={() => setIsChannelManagerOpen(true)} 
+                          className="p-2 rounded-full hover:bg-gray-700/50 transition-colors"
+                          aria-label="Manage Channels"
+                        >
                             <Cog6ToothIcon className="h-5 w-5 text-gray-400"/>
                         </button>
                     )}
@@ -63,7 +65,7 @@ const CampaignPage = () => {
                 {campaign.channels && campaign.channels.length > 0 ? (
                     <div className="space-y-2">
                         {campaign.channels.map(channel => (
-                            <div key={channel._id} className="p-2 text-gray-300 rounded-lg hover:bg-gray-800/50">
+                            <div key={channel._id || channel.type} className="p-2 text-gray-300 rounded-lg hover:bg-gray-800/50">
                                 # {channel.name}
                             </div>
                         ))}
@@ -71,7 +73,7 @@ const CampaignPage = () => {
                 ) : (
                     <div className="text-center text-gray-500 py-4">
                         <p>No channels yet.</p>
-                        {isAdmin && <p className="text-xs">Click the gear to add one.</p>}
+                        {isAdmin && <p className="text-xs mt-1">Click the gear icon to add one.</p>}
                     </div>
                 )}
             </div>
@@ -84,6 +86,7 @@ const CampaignPage = () => {
             </div>
             <div className="p-4 bg-gray-900/50 rounded-xl">
                 <h1 className="text-4xl font-bold text-white">{campaign.name}</h1>
+                <p className="mt-2 text-gray-400">{campaign.type} • {campaign.category}</p>
             </div>
             <div className="p-4 bg-gray-900/50 rounded-xl">
                 <h3 className="text-xl font-bold text-red-500 border-b border-gray-700 pb-2 mb-4">Rules & Guidelines</h3>
