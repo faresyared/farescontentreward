@@ -12,14 +12,13 @@ app.use(express.json({ limit: '50mb' }));
 // --- CONFIGURE AND APPLY THE RATE LIMITER ---
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, 
+  max: 100, // Limit each IP to 100 requests per 15 minutes
   standardHeaders: true,
   legacyHeaders: false,
   message: 'Too many requests from this IP, please try again after 15 minutes',
 });
 
-// --- THIS IS THE FIX ---
-// Apply the limiter to the root of the function, not a sub-path.
+// --- FIX 1: Apply the limiter to ALL requests coming into the function ---
 app.use(limiter);
 
 // --- IMPORT ROUTES ---
@@ -29,9 +28,8 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const postRoutes = require('./routes/postRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
-// --- THIS IS THE FIX ---
-// The "/api" prefix has been removed from all routes.
-// Express will now listen for "/auth", "/users", etc.
+// --- FIX 2: Ensure NO "/api" prefixes are used here ---
+// The function receives paths like "/users/me/joined", not "/api/users/me/joined"
 app.use('/auth', authRoutes);
 app.use('/users', userRoutes);
 app.use('/campaigns', campaignRoutes);
