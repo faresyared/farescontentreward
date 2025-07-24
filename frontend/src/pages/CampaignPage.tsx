@@ -1,14 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, 'useState', useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { FullCampaign, Channel } from '../components/CampaignDetailsModal';
 import ChannelManager from '../components/ChannelManager';
-import UpdatesChannel from '../components/channels/UpdatesChannel'; // Import our new channel
-import { Cog6ToothIcon, ChatBubbleBottomCenterTextIcon, InformationCircleIcon } from '@heroicons/react/24/solid';
+import DetailsChannel from '../components/channels/DetailsChannel'; // Import our new Details channel
+import UpdatesChannel from '../components/channels/UpdatesChannel';
+import { Cog6ToothIcon, ChatBubbleBottomCenterTextIcon, InformationCircleIcon, ClipboardDocumentListIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
-// A map to link channel types to their components and icons
+// --- CHANGE 1: Define the default channel ---
+const defaultChannel: Channel = {
+  _id: 'details',
+  name: 'Details',
+  type: 'details',
+};
+
 const channelComponentMap = {
+  'details': { component: DetailsChannel, icon: <ClipboardDocumentListIcon className="h-5 w-5"/> },
   'feed': { component: UpdatesChannel, icon: <InformationCircleIcon className="h-5 w-5"/> },
   'chat': { component: () => <div className="text-center text-gray-500 p-8">Chat feature coming soon!</div>, icon: <ChatBubbleBottomCenterTextIcon className="h-5 w-5"/> },
   // Add other channels here as you build them
@@ -22,7 +30,9 @@ const CampaignPage = () => {
   const [campaign, setCampaign] = useState<FullCampaign | null>(null);
   const [loading, setLoading] = useState(true);
   const [isChannelManagerOpen, setIsChannelManagerOpen] = useState(false);
-  const [activeChannel, setActiveChannel] = useState<Channel | null>(null);
+  
+  // --- CHANGE 2: Set the active channel to our default channel initially ---
+  const [activeChannel, setActiveChannel] = useState<Channel>(defaultChannel);
 
   useEffect(() => {
     const fetchCampaign = async () => {
@@ -31,10 +41,7 @@ const CampaignPage = () => {
       try {
         const res = await axios.get(`/api/campaigns/${campaignId}`);
         setCampaign(res.data);
-        // Set the first channel as active by default
-        if (res.data.channels && res.data.channels.length > 0) {
-          setActiveChannel(res.data.channels[0]);
-        }
+        // No need to set active channel here anymore, it's already set to default
       } catch (err) { 
         console.error("Failed to fetch campaign details", err); 
       } finally { 
@@ -44,18 +51,26 @@ const CampaignPage = () => {
     fetchCampaign();
   }, [campaignId]);
   
-  // A function to render the currently active channel component
   const renderActiveChannel = () => {
-    if (!activeChannel || !campaignId) {
-      return <div className="text-center text-gray-500 p-8">Select a channel to get started.</div>;
-    }
+    if (!campaign) return null; // Campaign data is required now
 
     const ChannelComponent = channelComponentMap[activeChannel.type]?.component;
-    return ChannelComponent ? <ChannelComponent campaignId={campaignId} /> : <div className="text-center text-red-500 p-8">Error: Channel type "{activeChannel.type}" not found.</div>;
+
+    // --- CHANGE 3: Pass props differently based on the component ---
+    if (activeChannel.type === 'details') {
+      return ChannelComponent ? <ChannelComponent campaign={campaign} /> : null;
+    }
+    if (campaignId) {
+      return ChannelComponent ? <ChannelComponent campaignId={campaignId} /> : null;
+    }
+    return <div className="text-center text-red-500 p-8">Error: Could not render channel.</div>;
   };
 
   if (loading) return <p className="text-center text-gray-400">Loading Campaign...</p>;
   if (!campaign) return <p className="text-center text-red-500">Campaign not found.</p>;
+  
+  // --- CHANGE 4: Combine the default channel with channels from the database ---
+  const allChannels = [defaultChannel, ...(campaign.channels || [])];
 
   return (
     <>
@@ -80,29 +95,28 @@ const CampaignPage = () => {
                         </button>
                     )}
                 </div>
-                {campaign.channels && campaign.channels.length > 0 ? (
-                    <div className="space-y-1">
-                        {campaign.channels.map(channel => {
-                            const isActive = activeChannel?.type === channel.type;
-                            const channelInfo = channelComponentMap[channel.type];
-                            return (
-                                <button 
-                                  key={channel._id || channel.type} 
-                                  onClick={() => setActiveChannel(channel)}
-                                  className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${isActive ? 'bg-red-500/10 text-red-400' : 'text-gray-300 hover:bg-gray-800/50'}`}
-                                >
-                                    {channelInfo?.icon}
-                                    <span>{channel.name}</span>
-                                </button>
-                            );
-                        })}
-                    </div>
-                ) : (
-                    <div className="text-center text-gray-500 py-4">
-                        <p>No channels yet.</p>
-                        {isAdmin && <p className="text-xs mt-1">Click the gear icon to add one.</p>}
-                    </div>
-                )}
+                <div className="space-y-1">
+                    {allChannels.map(channel => {
+                        const isActive = activeChannel?.type === channel.type;
+                        const channelInfo = channelComponentMap[channel.type];
+                        return (
+                            <button 
+                              key={channel._id || channel.type} 
+                              onClick={() => setActiveChannel(channel)}
+                              className={`w-full flex items-center gap-3 p-2 rounded-lg text-left transition-colors ${isActive ? 'bg-red-500/10 text-red-400' : 'text-gray-300 hover:bg-gray-800/50'}`}
+                            >
+                                {channelInfo?.icon}
+                                <span>{channel.name}</span>
+                            </button>
+                        );
+                    })}
+                    {/* Display a message if only the default channel exists */}
+                    {campaign.channels.length === 0 && (
+                        <div className="text-center text-gray-500 pt-4 pb-2">
+                            {isAdmin && <p className="text-xs">Click the gear to add more channels.</p>}
+                        </div>
+                    )}
+                </div>
             </div>
         </div>
 
