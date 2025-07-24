@@ -1,8 +1,4 @@
 const express = require('express');
-// --- NEW LOG 1 ---
-// This will tell us if the adminRoutes.js file is being loaded correctly.
-console.log('adminRoutes.js: File loaded');
-
 const User = require('../models/userModel');
 const Campaign = require('../models/campaignModel');
 const Transaction = require('../models/transactionModel');
@@ -59,10 +55,6 @@ router.post('/transactions', [auth, adminAuth], async (req, res) => {
 
 // GET admin analytics dashboard data (Admin Only)
 router.get('/analytics', [auth, adminAuth], async (req, res) => {
-    // --- NEW LOG 2 ---
-    // This will only appear if the request successfully reaches this specific route.
-    console.log('adminRoutes.js: /analytics route hit');
-
     try {
         const totalUsers = await User.countDocuments();
         const totalCampaigns = await Campaign.countDocuments();
