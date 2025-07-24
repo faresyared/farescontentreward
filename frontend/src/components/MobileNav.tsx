@@ -1,12 +1,29 @@
 import React, { Fragment } from 'react';
-import { NavLink } from 'react-router-dom';
-import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, UserIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { NavLink, useNavigate } from 'react-router-dom';
+// --- THIS IS THE FIX ---
+// All the necessary icons are now imported correctly.
+import { 
+  HomeIcon, 
+  MegaphoneIcon, 
+  CurrencyDollarIcon, 
+  UserIcon, 
+  ArrowRightOnRectangleIcon, 
+  ShieldCheckIcon, 
+  ChartBarIcon, 
+  Cog6ToothIcon 
+} from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 
 const MobileNav = () => {
   const { user, logout } = useAuth();
   const isAdmin = user?.role === 'admin';
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
 
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-md border-t border-gray-800/50 p-1">
@@ -55,7 +72,7 @@ const MobileNav = () => {
                 </Menu.Item>
                 <div className="my-1 h-px bg-gray-700/50" />
                 <Menu.Item>
-                  {({ active }) => ( <button onClick={logout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )}
+                  {({ active }) => ( <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )}
                 </Menu.Item>
               </div>
             </Menu.Items>
