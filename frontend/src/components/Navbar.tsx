@@ -4,11 +4,6 @@ import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, Cog6ToothIcon, UserIcon, A
 import { useAuth } from '../context/AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 
-// A helper function to combine class names, useful for Headless UI
-function classNames(...classes) {
-  return classes.filter(Boolean).join(' ')
-}
-
 const Navbar = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -44,49 +39,28 @@ const Navbar = () => {
                   <img className="h-10 w-10 rounded-full border-2 border-red-500/50" src={user?.avatar} alt="User avatar" />
                 </Menu.Button>
                 <Transition as={Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                  {/* --- THIS ENTIRE SECTION HAS BEEN REWRITTEN --- */}
                   <Menu.Items className="absolute right-0 mt-2 w-56 origin-top-right bg-gray-900 border border-gray-700/50 rounded-md shadow-lg focus:outline-none">
                     <div className="p-1">
                       {isAdmin && (
-                        <div>
-                          <Menu.Item as={NavLink} to="/dashboard/analytics">
-                            {({ active }) => (
-                              <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}>
-                                <ChartBarIcon className="mr-2 h-5 w-5" /> Analytics
-                              </a>
-                            )}
+                        <React.Fragment>
+                          <Menu.Item>
+                            {({ active }) => ( <NavLink to="/dashboard/analytics" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ChartBarIcon className="mr-2 h-5 w-5" /> Analytics </NavLink> )}
                           </Menu.Item>
-                          <Menu.Item as={NavLink} to="/dashboard/users">
-                            {({ active }) => (
-                              <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}>
-                                <ShieldCheckIcon className="mr-2 h-5 w-5" /> User Management
-                              </a>
-                            )}
+                          <Menu.Item>
+                            {({ active }) => ( <NavLink to="/dashboard/users" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ShieldCheckIcon className="mr-2 h-5 w-5" /> User Management </NavLink> )}
                           </Menu.Item>
                           <div className="my-1 h-px bg-gray-700/50" />
-                        </div>
+                        </React.Fragment>
                       )}
-                      <Menu.Item as={NavLink} to="/dashboard/profile">
-                        {({ active }) => (
-                          <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}>
-                            <UserIcon className="mr-2 h-5 w-5" /> Edit Profile
-                          </a>
-                        )}
+                      <Menu.Item>
+                        {({ active }) => ( <NavLink to="/dashboard/profile" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <UserIcon className="mr-2 h-5 w-5" /> Edit Profile </NavLink> )}
                       </Menu.Item>
-                      <Menu.Item as={NavLink} to="/dashboard/settings">
-                        {({ active }) => (
-                          <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}>
-                            <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings
-                          </a>
-                        )}
+                      <Menu.Item>
+                        {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings </NavLink> )}
                       </Menu.Item>
                       <div className="my-1 h-px bg-gray-700/50" />
                       <Menu.Item>
-                        {({ active }) => (
-                          <button onClick={handleLogout} className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}>
-                            <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout
-                          </button>
-                        )}
+                        {({ active }) => ( <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )}
                       </Menu.Item>
                     </div>
                   </Menu.Items>
@@ -107,29 +81,28 @@ const Navbar = () => {
                   Profile
                 </Menu.Button>
                 <Transition as={Fragment} enter="transition ease-out duration-100" enterFrom="transform opacity-0 scale-95" enterTo="transform opacity-100 scale-100" leave="transition ease-in duration-75" leaveFrom="transform opacity-100 scale-100" leaveTo="transform opacity-0 scale-95">
-                  {/* --- THIS MOBILE MENU SECTION HAS ALSO BEEN REWRITTEN --- */}
                   <Menu.Items className="absolute bottom-full right-0 mb-2 w-56 origin-bottom-right bg-gray-900 border border-gray-700/50 rounded-md shadow-lg focus:outline-none">
                     <div className="p-1">
                       {isAdmin && (
-                        <div>
-                          <Menu.Item as={NavLink} to="/dashboard/analytics">
-                            {({ active }) => ( <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}> <ChartBarIcon className="mr-2 h-5 w-5" /> Analytics </a> )}
+                        <React.Fragment>
+                          <Menu.Item>
+                            {({ active }) => ( <NavLink to="/dashboard/analytics" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ChartBarIcon className="mr-2 h-5 w-5" /> Analytics </NavLink> )}
                           </Menu.Item>
-                          <Menu.Item as={NavLink} to="/dashboard/users">
-                            {({ active }) => ( <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}> <ShieldCheckIcon className="mr-2 h-5 w-5" /> User Management </a> )}
+                          <Menu.Item>
+                            {({ active }) => ( <NavLink to="/dashboard/users" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ShieldCheckIcon className="mr-2 h-5 w-5" /> User Management </NavLink> )}
                           </Menu.Item>
                           <div className="my-1 h-px bg-gray-700/50" />
-                        </div>
+                        </React.Fragment>
                       )}
-                      <Menu.Item as={NavLink} to="/dashboard/profile">
-                        {({ active }) => ( <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}> <UserIcon className="mr-2 h-5 w-5" /> Edit Profile </a> )}
+                      <Menu.Item>
+                        {({ active }) => ( <NavLink to="/dashboard/profile" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <UserIcon className="mr-2 h-5 w-5" /> Edit Profile </NavLink> )}
                       </Menu.Item>
-                      <Menu.Item as={NavLink} to="/dashboard/settings">
-                        {({ active }) => ( <a className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}> <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings </a> )}
+                      <Menu.Item>
+                        {({ active }) => ( <NavLink to="/dashboard/settings" className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <Cog6ToothIcon className="mr-2 h-5 w-5" /> Settings </NavLink> )}
                       </Menu.Item>
                       <div className="my-1 h-px bg-gray-700/50" />
                       <Menu.Item>
-                        {({ active }) => ( <button onClick={handleLogout} className={classNames(active ? 'bg-red-500/20 text-white' : 'text-gray-300', 'group flex w-full items-center rounded-md px-2 py-2 text-sm')}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )}
+                        {({ active }) => ( <button onClick={handleLogout} className={`${active ? 'bg-red-500/20 text-white' : 'text-gray-300'} group flex w-full items-center rounded-md px-2 py-2 text-sm`}> <ArrowRightOnRectangleIcon className="mr-2 h-5 w-5" /> Logout </button> )}
                       </Menu.Item>
                     </div>
                   </Menu.Items>
