@@ -13,7 +13,6 @@ const createTokenPayload = (user) => ({
   user: { id: user.id, role: user.role, username: user.username, avatar: user.avatar, isVerified: user.isVerified }
 });
 
-// --- UPDATED SIGNUP ROUTE (Sends a code) ---
 router.post('/signup',
   [
     body('fullName', 'Full name is required').not().isEmpty().trim().escape(),
@@ -30,22 +29,13 @@ router.post('/signup',
         let user = await User.findOne({ email });
         if (user) return res.status(400).json({ message: 'User with this email already exists.' });
 
-        // --- CHANGE 1: Generate a 6-digit code ---
         const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        user = new User({
-            username,
-            fullName,
-            email,
-            password,
-            verificationToken: verificationCode, // Save the code as the token
-        });
+        user = new User({ username, fullName, email, password, verificationToken: verificationCode });
 
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(password, salt);
         await user.save();
         
-        // --- CHANGE 2: Update the email to send the code ---
         const transporter = nodemailer.createTransport({ service: 'gmail', auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS } });
         const mailOptions = {
             to: user.email,
@@ -55,42 +45,26 @@ router.post('/signup',
         };
         await transporter.sendMail(mailOptions);
 
-        // --- CHANGE 3: Do NOT log in. Send a success message. ---
         res.status(201).json({ message: 'Registration successful! Please check your email for a verification code.' });
-
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
 
-// --- NEW ROUTE TO HANDLE CODE VERIFICATION ---
 router.post('/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;
-        const user = await User.findOne({
-            email: email,
-            verificationToken: code,
-        });
-
-        if (!user) {
-            return res.status(400).json({ message: 'Verification code is invalid.' });
-        }
+        const user = await User.findOne({ email: email, verificationToken: code });
+        if (!user) return res.status(400).json({ message: 'Verification code is invalid.' });
 
         user.isVerified = true;
         user.verificationToken = undefined;
         await user.save();
 
-        // Automatically log the user in after verification
         const payload = createTokenPayload(user);
         const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-        
         res.json({ token });
-
-    } catch (err) {
-        console.error(err);
-        res.status(500).send('Server error. Could not verify account.');
-    }
+    } catch (err) { console.error(err); res.status(500).send('Server error. Could not verify account.'); }
 });
 
-// ... (The rest of the file is the same as the last working version)
 router.post('/resend-verification', auth, async (req, res) => {
     try {
         const user = await User.findById(req.user.id);
@@ -110,6 +84,7 @@ router.post('/resend-verification', auth, async (req, res) => {
         res.json({ message: 'A new verification email has been sent.' });
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
+
 router.post('/signin', async (req, res) => {
     const { login, password } = req.body;
     try {
@@ -123,6 +98,7 @@ router.post('/signin', async (req, res) => {
         res.json({ token });
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
+
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'], session: false }));
 router.get('/google/callback', passport.authenticate('google', { failureRedirect: '/', session: false }), async (req, res) => {
     const user = req.user;
@@ -132,6 +108,7 @@ router.get('/google/callback', passport.authenticate('google', { failureRedirect
     const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
     res.redirect(`${process.env.FRONTEND_URL}/auth/callback?token=${token}`);
 });
+
 router.post('/forgot-password', async (req, res) => {
     try {
         const code = Math.floor(100000 + Math.random() * 900000).toString();
@@ -151,6 +128,7 @@ router.post('/forgot-password', async (req, res) => {
         res.json({ message: 'A password reset code has been sent to your email.' });
     } catch (err) { console.error(err); res.status(500).send('Server error'); }
 });
+
 router.post('/reset-password', async (req, res) => {
     try {
         const { email, code, password } = req.body;

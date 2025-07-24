@@ -5,33 +5,26 @@ const connectDB = require('./db');
 
 // --- EXPRESS APP SETUP ---
 const app = express();
-app.set('trust proxy', 1); // Keep this for rate-limiting later
+
+// It is still good practice to keep this line for Netlify
+app.set('trust proxy', 1);
+
 app.use(cors());
 app.use(express.json({ limit: '50mb' }));
 
-// --- THIS IS THE FIX ---
-// 1. Create a single, main router for our entire API.
-const apiRouter = express.Router();
-
-// 2. Import all of our specific route files.
+// --- IMPORT ALL ROUTE FILES ---
 const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const campaignRoutes = require('./routes/campaignRoutes');
 const postRoutes = require('./routes/postRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
-// 3. Tell our single main router how to use the specific routers.
-//    e.g., any request to '/auth' will be handled by authRoutes.
-apiRouter.use('/auth', authRoutes);
-apiRouter.use('/users', userRoutes);
-apiRouter.use('/campaigns', campaignRoutes);
-apiRouter.use('/posts', postRoutes);
-apiRouter.use('/admin', adminRoutes);
-
-// 4. Tell the main Express app to use our single router for ANY request that comes in.
-//    The path is just '/', because Netlify has already handled the /api part.
-app.use('/', apiRouter);
-
+// --- USE THE ROUTES WITHOUT THE '/api' PREFIX ---
+app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
+app.use('/campaigns', campaignRoutes);
+app.use('/posts', postRoutes);
+app.use('/admin', adminRoutes);
 
 // --- NETLIFY HANDLER ---
 const handler = serverless(app);
