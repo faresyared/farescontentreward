@@ -40,11 +40,7 @@ const SignUp = () => {
     try {
       const res = await axios.post('/api/auth/signup', formData);
       toast.success(res.data.message);
-      
-      // --- THIS IS THE CHANGE ---
-      // Redirect to the new verification page, passing the email along
       navigate(`/verify-account?email=${email}`);
-
     } catch (err: any) {
       if (err.response && err.response.data.errors) {
         setError(err.response.data.errors[0].msg);
@@ -61,7 +57,11 @@ const SignUp = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-red-900 opacity-70 blur-3xl"></div>
       <div className="relative w-full max-w-md bg-black/50 backdrop-blur-lg rounded-2xl border border-gray-700/50 shadow-2xl shadow-red-500/10">
         <div className="p-8">
-          <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500 mb-2">Create Account</h1>
+          {/* --- THIS IS THE CHANGE --- */}
+          <div className="flex justify-center items-center mb-2">
+            <img src="/logo.png" alt="Reelify Logo" className="h-10 w-auto" />
+            <span className="ml-3 text-4xl font-bold text-red-500">Reelify</span>
+          </div>
           <p className="text-center text-gray-400 mb-6">Join the Reelify community</p>
           <form className="space-y-4" onSubmit={onSubmit}>
             <div className="grid grid-cols-2 gap-4">

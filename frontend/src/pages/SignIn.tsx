@@ -20,8 +20,6 @@ const SignIn = () => {
     setError('');
     if (!loginField || !password) { setError('Please fill in all fields.'); return; }
     try {
-      // --- THIS IS THE FIX ---
-      // The URL has been changed to point to the correct auth route.
       const res = await axios.post('/api/auth/signin', { login: loginField, password });
       login(res.data.token);
       navigate('/dashboard');
@@ -31,7 +29,6 @@ const SignIn = () => {
   };
 
   const handleGoogleSuccess = () => {
-    // This correctly redirects to the backend Google auth route
     window.location.href = '/api/auth/google';
   };
 
@@ -40,7 +37,11 @@ const SignIn = () => {
       <div className="absolute inset-0 bg-gradient-to-br from-black via-gray-900 to-red-900 opacity-70 blur-3xl"></div>
       <div className="relative w-full max-w-md bg-black/50 backdrop-blur-lg rounded-2xl border border-gray-700/50 shadow-2xl shadow-red-500/10">
         <div className="p-8">
-          <h1 className="text-4xl font-bold text-center text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-pink-500 mb-2">Reelify</h1>
+          {/* --- THIS IS THE CHANGE --- */}
+          <div className="flex justify-center items-center mb-2">
+            <img src="/logo.png" alt="Reelify Logo" className="h-10 w-auto" />
+            <span className="ml-3 text-4xl font-bold text-red-500">Reelify</span>
+          </div>
           <p className="text-center text-gray-400 mb-8">Welcome back</p>
           
           <div className="space-y-4">
