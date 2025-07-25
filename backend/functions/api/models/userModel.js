@@ -5,7 +5,7 @@ const UserSchema = new mongoose.Schema({
     fullName: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String },
-    avatar: { type: String, default: 'https://i.pravatar.cc/150' },
+    avatar: { type: String, default: 'https://res.cloudinary.com/dqbgu5rwq/image/upload/v1753148273/avatar.png' },
     role: { type: String, enum: ['user', 'admin'], default: 'user' },
     isActive: { type: Boolean, default: true },
     googleId: { type: String },
