@@ -36,7 +36,7 @@ const DetailsChannel: React.FC<{ campaign: FullCampaign }> = ({ campaign }) => {
         <h3 className="text-xl font-bold text-white border-b border-gray-700 pb-3 mb-4">Campaign Details</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <DetailItem label="Budget" value={`$${campaign.budget.toLocaleString()}`} />
-          <DetailItem label="Reward/1k Views" value={campaign.rewardPer1kViews ? `$${campaign.rewardPer1kViews}` : undefined} />
+          <DetailItem label="Reward/1k Views in JD" value={campaign.rewardPer1kViews ? `$${campaign.rewardPer1kViews}` : undefined} />
           <DetailItem label="Min Payout" value={campaign.minPayout ? `$${campaign.minPayout}` : undefined} />
           <DetailItem label="Max Payout" value={campaign.maxPayout ? `$${campaign.maxPayout}` : undefined} />
           <DetailItem 
