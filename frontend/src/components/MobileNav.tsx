@@ -4,13 +4,14 @@ import { NavLink, useNavigate } from 'react-router-dom';
 // All the necessary icons are now imported correctly.
 import { 
   HomeIcon, 
-  MegaphoneIcon, 
-  CurrencyDollarIcon, 
-  UserIcon, 
-  ArrowRightOnRectangleIcon, 
-  ShieldCheckIcon, 
-  ChartBarIcon, 
-  Cog6ToothIcon 
+  MegaphoneIcon,
+  CurrencyDollarIcon,
+  UserIcon,
+  ArrowRightOnRectangleIcon,
+  ShieldCheckIcon,
+  ChartBarIcon,
+  Cog6ToothIcon,
+  MusicalNoteIcon
 } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { Menu, Transition } from '@headlessui/react';
@@ -33,6 +34,9 @@ const MobileNav = () => {
         </NavLink>
         <NavLink to="/dashboard/campaigns" className="flex flex-col items-center justify-center w-full py-2 rounded-lg text-xs font-medium text-gray-400 data-[active]:text-red-400">
           <MegaphoneIcon className="h-6 w-6" /> Campaigns
+        </NavLink>
+        <NavLink to="/dashboard/music" className="flex flex-col items-center justify-center w-full py-2 rounded-lg text-xs font-medium text-gray-400 data-[active]:text-red-400">
+          <MusicalNoteIcon className="h-6 w-6" /> Music
         </NavLink>
         <NavLink to="/dashboard/earnings" className="flex flex-col items-center justify-center w-full py-2 rounded-lg text-xs font-medium text-gray-400 data-[active]:text-red-400">
           <CurrencyDollarIcon className="h-6 w-6" /> Earnings

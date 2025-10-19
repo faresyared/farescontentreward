@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, Cog6ToothIcon, UserIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon, ChartBarIcon } from '@heroicons/react/24/outline';
+import { HomeIcon, MegaphoneIcon, CurrencyDollarIcon, Cog6ToothIcon, UserIcon, ArrowRightOnRectangleIcon, ShieldCheckIcon, ChartBarIcon, MusicalNoteIcon } from '@heroicons/react/24/outline';
 import { useAuth } from '../context/AuthContext';
 import { Menu, Transition } from '@headlessui/react';
 
@@ -30,6 +30,7 @@ const Navbar = () => {
               <div className="hidden md:flex items-center space-x-4">
                 <NavLink to="/dashboard/home" className={desktopNavLinkClass}><HomeIcon className="h-5 w-5 mr-2" /> Home</NavLink>
                 <NavLink to="/dashboard/campaigns" className={desktopNavLinkClass}><MegaphoneIcon className="h-5 w-5 mr-2" /> Campaigns</NavLink>
+                <NavLink to="/dashboard/music" className={desktopNavLinkClass}><MusicalNoteIcon className="h-5 w-5 mr-2" /> Music Studio</NavLink>
                 <NavLink to="/dashboard/earnings" className={desktopNavLinkClass}><CurrencyDollarIcon className="h-5 w-5 mr-2" /> Earnings</NavLink>
               </div>
             </div>

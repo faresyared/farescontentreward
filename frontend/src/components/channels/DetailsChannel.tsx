@@ -1,5 +1,5 @@
 import React from 'react';
-import { FullCampaign } from '../CampaignDetailsModal';
+import type { CampaignAsset, FullCampaign } from '../CampaignDetailsModal';
 import { FaYoutube, FaInstagram, FaTiktok } from 'react-icons/fa';
 import { FaXTwitter } from "react-icons/fa6";
 import ReactMarkdown from 'react-markdown'; // Import the markdown library
@@ -18,6 +18,17 @@ const platformIcons = {
   X: <FaXTwitter className="text-white" />,
   Instagram: <FaInstagram className="text-pink-500" />,
   TikTok: <FaTiktok className="text-white" />,
+};
+
+const isAudioAsset = (asset: CampaignAsset) => {
+  if (!asset?.url) return false;
+  if (asset.type === 'audio') return true;
+  try {
+    const fromUrl = new URL(asset.url);
+    return /\.(mp3|wav|m4a|aac|flac|ogg)$/i.test(fromUrl.pathname || '');
+  } catch (err) {
+    return /\.(mp3|wav|m4a|aac|flac|ogg)$/i.test(asset.url);
+  }
 };
 
 const DetailsChannel: React.FC<{ campaign: FullCampaign }> = ({ campaign }) => {
@@ -47,15 +58,30 @@ const DetailsChannel: React.FC<{ campaign: FullCampaign }> = ({ campaign }) => {
               </div>
             } 
           />
-          <DetailItem 
+          <DetailItem
             label="Assets"
             value={
               campaign.assets && campaign.assets.length > 0 ? (
-                <div className="flex flex-col space-y-2 pt-1">
+                <div className="flex flex-col space-y-3 pt-1 text-left">
                   {campaign.assets.map((asset, index) => (
-                    <a key={index} href={asset.url} target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-semibold text-base">
-                      {asset.name}
-                    </a>
+                    <div key={`${asset.url}-${index}`} className="bg-gray-900/40 border border-gray-800/50 rounded-lg p-3">
+                      <p className="text-sm font-semibold text-white">{asset.name || `Asset ${index + 1}`}</p>
+                      {isAudioAsset(asset) ? (
+                        <audio controls className="w-full mt-2">
+                          <source src={asset.url} />
+                          Your browser does not support audio playback.
+                        </audio>
+                      ) : (
+                        <a
+                          href={asset.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:underline text-sm"
+                        >
+                          Open asset
+                        </a>
+                      )}
+                    </div>
                   ))}
                 </div>
               ) : 'N/A'

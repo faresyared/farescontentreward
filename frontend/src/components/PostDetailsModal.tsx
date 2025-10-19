@@ -3,7 +3,7 @@
 import React, { useState, Fragment } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
-import { Post, Comment } from './PostCard';
+import type { Post, Comment } from './PostCard';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination } from 'swiper/modules';
 import 'swiper/css';

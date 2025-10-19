@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FullCampaign } from './CampaignDetailsModal';
+import type { FullCampaign } from './CampaignDetailsModal';
 import Modal from './Modal';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 

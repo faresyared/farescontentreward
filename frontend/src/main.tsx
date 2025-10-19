@@ -6,6 +6,7 @@ import App from './App.tsx'
 import './index.css'
 import { BrowserRouter } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
+import { MusicGenerationProvider } from './context/MusicGenerationContext'
 import { GoogleOAuthProvider } from '@react-oauth/google'
 
 // Your Google Client ID from the .env file
@@ -16,7 +17,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <GoogleOAuthProvider clientId={googleClientId}>
       <BrowserRouter>
         <AuthProvider>
-          <App />
+          <MusicGenerationProvider>
+            <App />
+          </MusicGenerationProvider>
         </AuthProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
