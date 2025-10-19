@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Post } from './PostCard';
+import type { Post } from './PostCard';
 import { XCircleIcon } from '@heroicons/react/24/solid';
 
 const cloudinaryAxios = axios.create();

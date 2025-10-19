@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { FullCampaign } from './CampaignDetailsModal';
+import type { FullCampaign } from './CampaignDetailsModal';
 import { PlusIcon, TrashIcon } from '@heroicons/react/24/solid';
 
 const cloudinaryAxios = axios.create();

@@ -10,6 +10,11 @@ const ChannelSchema = new mongoose.Schema({
 const AssetSchema = new mongoose.Schema({
     name: { type: String, required: true },
     url: { type: String, required: true },
+    type: {
+        type: String,
+        enum: ['audio', 'image', 'video', 'document', 'other'],
+        default: 'other'
+    }
 });
 
 const CampaignSchema = new mongoose.Schema({
@@ -20,7 +25,7 @@ const CampaignSchema = new mongoose.Schema({
     
     // --- THIS IS THE FIX ---
     // The 'assets' field is now an array of AssetSchema objects.
-    assets: [AssetSchema], 
+    assets: { type: [AssetSchema], default: [] },
 
     platforms: [{ type: String, enum: ['YouTube', 'X', 'Instagram', 'TikTok'], required: true }],
     rewardPer1kViews: { type: Number },

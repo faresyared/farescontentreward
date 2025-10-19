@@ -5,8 +5,8 @@ import CampaignCard from '../components/CampaignCard';
 import Modal from '../components/Modal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AddCampaignForm from '../components/AddCampaignForm';
-import CampaignDetailsModal, { FullCampaign } from '../components/CampaignDetailsModal';
-import { MagnifyingGlassIcon, PlusCircleIcon } from '@heroicons/react/24/solid';
+import CampaignDetailsModal, { type FullCampaign } from '../components/CampaignDetailsModal';
+import { MagnifyingGlassIcon, PlusCircleIcon, MusicalNoteIcon } from '@heroicons/react/24/solid';
 import { useAuth } from '../context/AuthContext';
 
 const Campaigns = () => {
@@ -123,7 +123,22 @@ const Campaigns = () => {
       <div>
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-4xl font-bold text-white">Campaigns</h1>
-          {isAdmin && ( <button onClick={openAddModal} className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105"> <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Campaign </button> )}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate('/dashboard/music')}
+              className="flex items-center bg-gray-800/70 hover:bg-gray-700 text-white font-semibold py-2 px-4 rounded-lg border border-gray-700/60 transition duration-300"
+            >
+              <MusicalNoteIcon className="h-5 w-5 mr-2" /> Brazilian Phonk Studio
+            </button>
+            {isAdmin && (
+              <button
+                onClick={openAddModal}
+                className="flex items-center bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300 transform hover:scale-105"
+              >
+                <PlusCircleIcon className="h-6 w-6 mr-2" /> Add Campaign
+              </button>
+            )}
+          </div>
         </div>
         <div className="mb-8 p-4 bg-gray-900/50 rounded-xl border border-gray-800/50">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">

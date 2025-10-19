@@ -16,6 +16,7 @@ const campaignRoutes = require('./routes/campaignRoutes');
 const postRoutes = require('./routes/postRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 const campaignUpdateRoutes = require('./routes/campaignUpdateRoutes'); // <-- Import new routes
+const musicRoutes = require('./routes/musicRoutes');
 
 // --- SETUP THE MAIN API ROUTER ---
 const apiRouter = express.Router();
@@ -26,6 +27,7 @@ apiRouter.use('/users', userRoutes);
 apiRouter.use('/campaigns', campaignRoutes);
 apiRouter.use('/posts', postRoutes);
 apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/music', musicRoutes);
 
 // --- THIS IS THE CHANGE ---
 // Tell the campaign router to use the new update routes for paths like /:campaignId/updates

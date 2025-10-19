@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import PostCard, { Post } from '../components/PostCard';
+import PostCard, { type Post } from '../components/PostCard';
 import Modal from '../components/Modal';
 import ConfirmationModal from '../components/ConfirmationModal';
 import AddPostForm from '../components/AddPostForm';

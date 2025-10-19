@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
-import { FullCampaign, Channel } from '../components/CampaignDetailsModal';
+import type { FullCampaign, Channel } from '../components/CampaignDetailsModal';
 import ChannelManager from '../components/ChannelManager';
 import DetailsChannel from '../components/channels/DetailsChannel';
 import UpdatesChannel from '../components/channels/UpdatesChannel';

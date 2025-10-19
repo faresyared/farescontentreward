@@ -18,6 +18,7 @@ import AdminAnalytics from './pages/AdminAnalytics';
 import AuthCallback from './pages/AuthCallback';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import MusicGenerator from './pages/MusicGenerator';
 
 if (localStorage.token) { setAuthToken(localStorage.token); }
 
@@ -40,6 +41,7 @@ function App() {
         <Route index element={<Navigate to="home" replace />} />
         <Route path="home" element={<Home />} />
         <Route path="campaigns" element={<Campaigns />} />
+        <Route path="music" element={<MusicGenerator />} />
         <Route path="earnings" element={<Earnings />} />
         <Route path="profile" element={<Profile />} />
         <Route path="settings" element={<Settings />} />

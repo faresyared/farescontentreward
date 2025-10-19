@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
 import setAuthToken from '../utils/setAuthToken';
-import { FullCampaign } from '../components/CampaignDetailsModal';
+import type { FullCampaign } from '../components/CampaignDetailsModal';
 
 interface AuthUser {
   id: string;

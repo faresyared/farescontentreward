@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { FullCampaign } from './CampaignDetailsModal';
+import type { FullCampaign } from './CampaignDetailsModal';
 
 const statusStyles = {
   Active: 'bg-green-500',
