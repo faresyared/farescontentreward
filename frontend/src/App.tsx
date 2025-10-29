@@ -18,6 +18,7 @@ import AdminAnalytics from './pages/AdminAnalytics';
 import AuthCallback from './pages/AuthCallback';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
+import PhonkStudio from './pages/PhonkStudio';
 
 if (localStorage.token) { setAuthToken(localStorage.token); }
 
@@ -33,6 +34,7 @@ function App() {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/auth/callback" element={<AuthCallback />} />
+      <Route path="/phonk-studio" element={<PhonkStudio />} />
       
       {/* The old /verify-email/:token route is no longer needed */}
 
