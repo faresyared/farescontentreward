@@ -1,16 +1,29 @@
-/* frontend/src/index.css */
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/*
-  THIS IS THE FINAL, GUARANTEED FIX.
-  We are telling the entire webpage that it should be black,
-  and that it is IMPOSSIBLE to scroll left or right (overflow-x: hidden).
-  This will "clip" the animated blobs and stop the page from moving.
-*/
-html, body {
-  background-color: #000;
+:root {
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color-scheme: dark;
+  background-color: #0a0a0f;
+  overscroll-behavior: none;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(0, 212, 255, 0.08), transparent 45%),
+    radial-gradient(circle at 80% 10%, rgba(255, 107, 53, 0.08), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(147, 51, 234, 0.1), transparent 45%),
+    #0a0a0f;
   overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  cursor: pointer;
 }
